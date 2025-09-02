@@ -1,156 +1,293 @@
-// netlify/functions/sheets-api.js  (CommonJS / Netlify Functions v1)
-const { google } = require("googleapis");
+const { google } = require('googleapis');
 
-const SHEET_ID = process.env.SHEET_ID;
-const TAB_PICKS = process.env.SHEET_TAB_PICKS || "Picks";
-const TAB_GAMES = process.env.SHEET_TAB_GAMES || "Games";
-const TAB_SETTINGS = process.env.SHEET_TAB_SETTINGS || "Settings";
-const CORS_ALLOW_ORIGIN = process.env.CORS_ALLOW_ORIGIN || "*";
+exports.handler = async (event, context) => {
+    // CORS headers
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
+    };
 
-const SEASON_START = new Date("2025-09-04T00:00:00Z").getTime();
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-
-const cors = () => ({
-  "Access-Control-Allow-Origin": CORS_ALLOW_ORIGIN,
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-});
-const json = (statusCode, body) => ({
-  statusCode,
-  headers: { "Content-Type": "application/json", ...cors() },
-  body: JSON.stringify(body),
-});
-const weekFromDate = () =>
-  Math.max(1, Math.min(18, Math.ceil((Date.now() - SEASON_START) / WEEK_MS)));
-
-async function sheets() {
-  if (!SHEET_ID) throw new Error("Missing SHEET_ID");
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  let key = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
-  if (!email || !key) throw new Error("Missing Google SA creds");
-  key = key.replace(/\\n/g, "\n"); // fix escaped newlines from Netlify UI
-  const jwt = new google.auth.JWT({
-    email,
-    key,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-  return google.sheets({ version: "v4", auth: jwt });
-}
-async function read(range) {
-  const s = await sheets();
-  const { data } = await s.spreadsheets.values.get({
-    spreadsheetId: SHEET_ID,
-    range,
-  });
-  return data.values || [];
-}
-async function append(range, values) {
-  const s = await sheets();
-  await s.spreadsheets.values.append({
-    spreadsheetId: SHEET_ID,
-    range,
-    valueInputOption: "RAW",
-    insertDataOption: "INSERT_ROWS",
-    requestBody: { values },
-  });
-}
-
-async function getCurrentWeekFromSettings() {
-  try {
-    const rows = await read(`${TAB_SETTINGS}!A1:Z`);
-    if (rows.length < 2) return null;
-    const H = rows[0].map((h) => String(h).trim().toLowerCase());
-    const idx =
-      H.indexOf("currentweek") >= 0 ? H.indexOf("currentweek") : H.indexOf("week");
-    if (idx === -1) return null;
-    const val = rows[1][idx];
-    const w = parseInt(val, 10);
-    return Number.isFinite(w) ? Math.max(1, Math.min(18, w)) : null;
-  } catch {
-    return null;
-  }
-}
-async function getGamesFromSheet(week) {
-  try {
-    const rows = await read(`${TAB_GAMES}!A1:Z`);
-    if (rows.length < 2) return [];
-    const H = rows[0].map((h) => String(h).trim().toLowerCase());
-    const ix = (k) => H.indexOf(k);
-    const W = ix("week"),
-      ID = ix("id"),
-      DAY = ix("day"),
-      TIME = ix("time"),
-      AW = ix("awayteam"),
-      HO = ix("hometeam"),
-      OU = ix("overunder"),
-      MNF = ix("ismnf"),
-      DONE = ix("completed");
-    const out = [];
-    for (let r = 1; r < rows.length; r++) {
-      const row = rows[r] || [];
-      const w = parseInt(row[W] ?? "", 10);
-      if (!Number.isFinite(w) || w !== week) continue;
-      out.push({
-        id: Number(row[ID] ?? r),
-        day: row[DAY] ?? "",
-        time: row[TIME] ?? "",
-        awayTeam: row[AW] ?? "",
-        homeTeam: row[HO] ?? "",
-        overUnder: row[OU] ?? "",
-        isMNF: String(row[MNF] ?? "").toLowerCase() === "true",
-        completed: String(row[DONE] ?? "").toLowerCase() === "true",
-      });
-    }
-    return out;
-  } catch {
-    return [];
-  }
-}
-
-exports.handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") return { statusCode: 200, headers: cors(), body: "" };
-  if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
-
-  let body;
-  try { body = JSON.parse(event.body || "{}"); } catch { return json(400, { error: "Invalid JSON" }); }
-
-  const action = body.action;
-  const data = body.data || {};
-
-  try {
-    if (action === "getCurrentWeek") {
-      const w = (await getCurrentWeekFromSettings()) ?? weekFromDate();
-      return json(200, { currentWeek: w });
+    // Handle preflight requests
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers,
+            body: ''
+        };
     }
 
-    if (action === "getGames") {
-      const w = Number(data.week) || weekFromDate();
-      const games = await getGamesFromSheet(w);
-      return json(200, { games });
-    }
+    try {
+        // Get environment variables
+        const SHEET_ID = process.env.SHEET_ID;
+        const SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+        const PRIVATE_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-    if (action === "savePick") {
-      const { player, week, gameId, teamPick, tiebreaker } = data || {};
-      if (!player || !week || !gameId || !teamPick) {
-        return json(400, { ok: false, error: "Missing player, week, gameId, or teamPick" });
-      }
-      await append(`${TAB_PICKS}!A:F`, [[
-        new Date().toISOString(),
-        String(week),
-        String(gameId),
-        String(player),
-        String(teamPick),
-        tiebreaker ?? ""
-      ]]);
-      return json(200, { ok: true });
-    }
+        console.log('Environment check:', {
+            hasSheetId: !!SHEET_ID,
+            hasEmail: !!SERVICE_ACCOUNT_EMAIL,
+            hasKey: !!PRIVATE_KEY,
+            method: event.httpMethod
+        });
 
-    return json(400, { error: "Unknown action" });
-  } catch (e) {
-    // Bubble useful details
-    const apiMsg = e?.response?.data?.error?.message;
-    const apiReason = e?.response?.data?.error?.status || e?.errors?.[0]?.reason;
-    console.error("Function error:", apiMsg || e.message || e);
-    return json(500, { ok: false, error: apiMsg || e.message || "Internal error", reason: apiReason });
-  }
+        if (!SHEET_ID || !SERVICE_ACCOUNT_EMAIL || !PRIVATE_KEY) {
+            console.error('Missing environment variables');
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ 
+                    error: 'Missing required environment variables',
+                    missing: {
+                        SHEET_ID: !SHEET_ID,
+                        EMAIL: !SERVICE_ACCOUNT_EMAIL,
+                        KEY: !PRIVATE_KEY
+                    }
+                })
+            };
+        }
+
+        // Parse the request
+        let requestData = {};
+        try {
+            if (event.body) {
+                requestData = JSON.parse(event.body);
+            }
+        } catch (e) {
+            console.error('JSON parse error:', e);
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: 'Invalid JSON in request body' })
+            };
+        }
+
+        const { action, data } = requestData;
+        console.log('Request:', { action, data });
+
+        // Validate action
+        if (!action) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: 'Missing action parameter' })
+            };
+        }
+
+        // Set up Google Sheets auth
+        const auth = new google.auth.JWT(
+            SERVICE_ACCOUNT_EMAIL,
+            null,
+            PRIVATE_KEY,
+            ['https://www.googleapis.com/auth/spreadsheets']
+        );
+
+        const sheets = google.sheets({ version: 'v4', auth });
+
+        // Handle different actions
+        switch (action) {
+            case 'getCurrentWeek':
+                return await getCurrentWeek(sheets, SHEET_ID, headers);
+            
+            case 'savePick':
+                if (!data) {
+                    return {
+                        statusCode: 400,
+                        headers,
+                        body: JSON.stringify({ error: 'Missing data for savePick' })
+                    };
+                }
+                return await savePick(sheets, SHEET_ID, data, headers);
+            
+            case 'getGames':
+                if (!data || !data.week) {
+                    return {
+                        statusCode: 400,
+                        headers,
+                        body: JSON.stringify({ error: 'Missing week parameter for getGames' })
+                    };
+                }
+                return await getGames(sheets, SHEET_ID, data, headers);
+
+            default:
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ error: `Unknown action: ${action}` })
+                };
+        }
+
+    } catch (error) {
+        console.error('Function error:', error);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+                error: error.message,
+                type: error.name,
+                details: 'Check function logs for more details'
+            })
+        };
+    }
 };
+
+async function getCurrentWeek(sheets, sheetId, headers) {
+    try {
+        console.log('Getting current week from sheet:', sheetId);
+        
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: sheetId,
+            range: 'Settings!A:B',
+        });
+
+        const rows = response.data.values || [];
+        const weekRow = rows.find(row => row[0] === 'Current_Week');
+        const currentWeek = weekRow ? parseInt(weekRow[1]) : 1;
+
+        console.log('Current week found:', currentWeek);
+
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ currentWeek })
+        };
+    } catch (error) {
+        console.error('getCurrentWeek error:', error);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: `Failed to get current week: ${error.message}` })
+        };
+    }
+}
+
+async function savePick(sheets, sheetId, data, headers) {
+    try {
+        console.log('Attempting to save pick:', data);
+
+        const { player, week, gameId, teamPick, tiebreaker } = data;
+        
+        // Validate required fields
+        if (!player || !week || !gameId || !teamPick) {
+            const missing = [];
+            if (!player) missing.push('player');
+            if (!week) missing.push('week'); 
+            if (!gameId) missing.push('gameId');
+            if (!teamPick) missing.push('teamPick');
+            
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ 
+                    error: 'Missing required fields',
+                    missing: missing
+                })
+            };
+        }
+
+        // Prepare the row data
+        const values = [[
+            String(player),
+            String(week),
+            String(gameId),
+            String(teamPick),
+            String(tiebreaker || ''),
+            new Date().toISOString()
+        ]];
+
+        console.log('Appending to sheet - values:', values);
+
+        // Append to Google Sheets
+        const result = await sheets.spreadsheets.values.append({
+            spreadsheetId: sheetId,
+            range: 'Picks!A:F',
+            valueInputOption: 'RAW',
+            requestBody: {
+                values: values
+            }
+        });
+
+        console.log('Pick saved successfully, updated range:', result.data.updates?.updatedRange);
+        
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ 
+                success: true,
+                updatedRange: result.data.updates?.updatedRange
+            })
+        };
+
+    } catch (error) {
+        console.error('savePick error details:', {
+            message: error.message,
+            code: error.code,
+            status: error.status
+        });
+        
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+                error: `Failed to save pick: ${error.message}`,
+                code: error.code
+            })
+        };
+    }
+}
+
+async function getGames(sheets, sheetId, data, headers) {
+    try {
+        const { week } = data;
+        console.log('Getting games for week:', week);
+
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: sheetId,
+            range: 'Games!A:H',
+        });
+
+        const rows = response.data.values || [];
+        
+        if (rows.length === 0) {
+            console.log('No data found in Games sheet');
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ games: [] })
+            };
+        }
+
+        const headerRow = rows[0];
+        const dataRows = rows.slice(1);
+
+        // Filter games for the requested week
+        const weekGames = dataRows
+            .filter(row => row.length > 0 && parseInt(row[0]) === parseInt(week))
+            .map((row, index) => ({
+                id: index + 1,
+                day: row[1] || '',
+                time: row[2] || '',
+                awayTeam: row[3] || '',
+                homeTeam: row[4] || '',
+                overUnder: parseFloat(row[5]) || 0,
+                completed: row[6] === 'TRUE',
+                winner: row[7] || null,
+                isMNF: (row[1] || '').toLowerCase().includes('monday')
+            }));
+
+        console.log(`Found ${weekGames.length} games for week ${week}`);
+
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ games: weekGames })
+        };
+
+    } catch (error) {
+        console.error('getGames error:', error);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: `Failed to get games: ${error.message}` })
+        };
+    }
+}
