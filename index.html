@@ -539,7 +539,49 @@
         .save-btn:active {
             transform: translateY(-1px);
         }
-        
+
+        /* Toast styles */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .25s ease, transform .25s ease;
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -10px);
+        }
+        .toast.success { border-color: rgba(76,175,80,.6); }
+        .toast.error { border-color: rgba(244,67,54,.6); }
+
+        /* API badge */
+        .api-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            z-index: 1500;
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(0,0,0,.35);
+            border: 1px solid rgba(255,255,255,.18);
+            backdrop-filter: blur(10px);
+        }
+        .api-ok { background: linear-gradient(135deg,#1b5e20,#2e7d32); }
+        .api-off { background: linear-gradient(135deg,#6a1b1a,#b71c1c); }
+
         @media (max-width: 1024px) {
             .container {
                 padding: 15px;
@@ -925,29 +967,30 @@
         </div>
         
         <div class="controls-section">
-            <div class="week-selector">
-                <button class="week-btn active" data-week="1">Week 1</button>
-                <button class="week-btn" data-week="2">Week 2</button>
-                <button class="week-btn" data-week="3">Week 3</button>
-                <button class="week-btn" data-week="4">Week 4</button>
-                <button class="week-btn" data-week="5">Week 5</button>
-                <button class="week-btn" data-week="6">Week 6</button>
-                <button class="week-btn" data-week="7">Week 7</button>
-                <button class="week-btn" data-week="8">Week 8</button>
-                <button class="week-btn" data-week="9">Week 9</button>
-                <button class="week-btn" data-week="10">Week 10</button>
-                <button class="week-btn" data-week="11">Week 11</button>
-                <button class="week-btn" data-week="12">Week 12</button>
-                <button class="week-btn" data-week="13">Week 13</button>
-                <button class="week-btn" data-week="14">Week 14</button>
-                <button class="week-btn" data-week="15">Week 15</button>
-                <button class="week-btn" data-week="16">Week 16</button>
-                <button class="week-btn" data-week="17">Week 17</button>
-                <button class="week-btn" data-week="18">Week 18</button>
+            <div class="week-selector" role="tablist" aria-label="Select NFL Week">
+                <button class="week-btn active" data-week="1" aria-label="Week 1">Week 1</button>
+                <button class="week-btn" data-week="2" aria-label="Week 2">Week 2</button>
+                <button class="week-btn" data-week="3" aria-label="Week 3">Week 3</button>
+                <button class="week-btn" data-week="4" aria-label="Week 4">Week 4</button>
+                <button class="week-btn" data-week="5" aria-label="Week 5">Week 5</button>
+                <button class="week-btn" data-week="6" aria-label="Week 6">Week 6</button>
+                <button class="week-btn" data-week="7" aria-label="Week 7">Week 7</button>
+                <button class="week-btn" data-week="8" aria-label="Week 8">Week 8</button>
+                <button class="week-btn" data-week="9" aria-label="Week 9">Week 9</button>
+                <button class="week-btn" data-week="10" aria-label="Week 10">Week 10</button>
+                <button class="week-btn" data-week="11" aria-label="Week 11">Week 11</button>
+                <button class="week-btn" data-week="12" aria-label="Week 12">Week 12</button>
+                <button class="week-btn" data-week="13" aria-label="Week 13">Week 13</button>
+                <button class="week-btn" data-week="14" aria-label="Week 14">Week 14</button>
+                <button class="week-btn" data-week="15" aria-label="Week 15">Week 15</button>
+                <button class="week-btn" data-week="16" aria-label="Week 16">Week 16</button>
+                <button class="week-btn" data-week="17" aria-label="Week 17">Week 17</button>
+                <button class="week-btn" data-week="18" aria-label="Week 18">Week 18</button>
             </div>
             
             <div class="player-selector">
-                <select id="playerSelect">
+                <label for="playerSelect" class="sr-only" aria-hidden="true">Select Your Name</label>
+                <select id="playerSelect" aria-label="Select your name">
                     <option value="">Select Your Name</option>
                     <option value="Brixon">Brixon</option>
                     <option value="Knox">Knox</option>
@@ -959,17 +1002,17 @@
             </div>
         </div>
         
-        <div id="gamesContainer" class="games-container">
+        <div id="gamesContainer" class="games-container" aria-live="polite">
             <div class="loading">Loading NFL games for this week...</div>
         </div>
         
         <div id="tiebreakerSection" class="tiebreaker" style="display: none;">
             <h3>🔥 Monday Night Football Tiebreaker 🔥</h3>
             <p style="margin-bottom: 20px; font-weight: 600;">Enter your prediction for total points scored:</p>
-            <input type="number" id="tiebreakerInput" placeholder="Total Points" min="0" max="150">
+            <input type="number" id="tiebreakerInput" placeholder="Total Points" min="0" max="150" aria-label="Tiebreaker total points">
         </div>
         
-        <button class="save-btn" onclick="savePicks()" style="display: none;">
+        <button class="save-btn" onclick="savePicks()" style="display: none;" aria-label="Save my picks">
             <span>Save My Picks</span>
         </button>
         
@@ -988,13 +1031,17 @@
         </div>
     </div>
 
+    <!-- Toast container -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <!-- API badge -->
+    <div id="apiBadge" class="api-badge api-off" aria-live="polite">Secure API: Offline (local only)</div>
+
     <script>
         // Secure API Configuration
         const API_CONFIG = {
-            // This will be your Netlify function URL
-            BASE_URL: 'https://your-site-name.netlify.app/.netlify/functions/sheets-api',
-            
-            // No credentials needed in frontend - all secure on server!
+            // If this HTML is deployed on the SAME Netlify site as your function,
+            // keep a relative path so it works across branches and previews.
+            BASE_URL: '/.netlify/functions/sheets-api',
             SHEETS: {
                 GAMES: 'Games',
                 PICKS: 'Picks', 
@@ -1003,13 +1050,35 @@
             }
         };
         
-        // Secure API calls
         let apiEnabled = true;
-        
+
+        // --- Toast helpers ---
+        function showToast(msg, type = 'success', timeout = 2000) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast ' + type;
+            requestAnimationFrame(() => el.classList.add('show'));
+            setTimeout(() => el.classList.remove('show'), timeout);
+        }
+
+        // --- API badge ---
+        function setAPIBadge(ok) {
+            const badge = document.getElementById('apiBadge');
+            if (!badge) return;
+            if (ok) {
+                badge.textContent = 'Secure API: Connected';
+                badge.classList.remove('api-off');
+                badge.classList.add('api-ok');
+            } else {
+                badge.textContent = 'Secure API: Offline (local only)';
+                badge.classList.remove('api-ok');
+                badge.classList.add('api-off');
+            }
+        }
+
         // Initialize secure connection
         async function initSecureAPI() {
             try {
-                // Test the secure API connection
                 const response = await fetch(`${API_CONFIG.BASE_URL}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1019,19 +1088,21 @@
                 if (response.ok) {
                     const data = await response.json();
                     apiEnabled = true;
+                    setAPIBadge(true);
                     console.log('✅ Secure API connected successfully!');
                     
-                    // Use server's current week if available
                     if (data.currentWeek) {
                         currentWeek = data.currentWeek;
                         updateActiveWeekButton();
                     }
-                    
                     return true;
+                } else {
+                    throw new Error('Status ' + response.status);
                 }
             } catch (error) {
                 console.log('⚠️ Secure API unavailable, using local storage:', error.message);
                 apiEnabled = false;
+                setAPIBadge(false);
                 return false;
             }
         }
@@ -1047,7 +1118,6 @@
                 });
                 
                 if (!response.ok) throw new Error('API call failed');
-                
                 return await response.json();
                 
             } catch (error) {
@@ -1055,32 +1125,52 @@
                 return null;
             }
         }
-        
-        async function loadGamesFromSecureAPI(week) {
-            const result = await secureAPICall('getGames', { week });
-            return result?.games || null;
-        }
-        
+
+        // --- Queued retry for saves when API is down ---
         async function savePickToSecureAPI(player, week, gameId, teamPick, tiebreaker) {
-            return await secureAPICall('savePick', {
-                player,
-                week,
-                gameId,
-                teamPick,
-                tiebreaker
-            });
+            if (!apiEnabled) return null;
+            try {
+                const res = await secureAPICall('savePick', { player, week, gameId, teamPick, tiebreaker });
+                if (!res || res.ok !== true) throw new Error('Non-OK response');
+                showToast('Pick saved to server ✅', 'success');
+                return res;
+            } catch (e) {
+                queuePendingSave({ player, week, gameId, teamPick, tiebreaker, ts: Date.now() });
+                showToast('Server offline — will retry ⏳', 'error');
+                return null;
+            }
         }
-        
-        async function getStandingsFromSecureAPI() {
-            const result = await secureAPICall('getStandings');
-            return result?.standings || null;
+
+        function queuePendingSave(item) {
+            const q = JSON.parse(localStorage.getItem('pendingSaves') || '[]');
+            q.push(item);
+            localStorage.setItem('pendingSaves', JSON.stringify(q));
         }
-        
+
+        async function flushPendingSaves() {
+            if (!apiEnabled) return;
+            const q = JSON.parse(localStorage.getItem('pendingSaves') || '[]');
+            if (!q.length) return;
+            const remaining = [];
+            for (const item of q) {
+                try {
+                    const res = await secureAPICall('savePick', item);
+                    if (!res || res.ok !== true) remaining.push(item);
+                } catch {
+                    remaining.push(item);
+                }
+            }
+            localStorage.setItem('pendingSaves', JSON.stringify(remaining));
+            if (q.length && remaining.length === 0) {
+                showToast('All pending saves synced ✅', 'success');
+            }
+        }
+
         // NFL Season Configuration
         const NFL_SEASON = {
             year: 2025,
-            startDate: new Date('2025-09-04'), // Thursday Night Football Week 1 - Cowboys vs Eagles
-            weekLength: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
+            startDate: new Date('2025-09-04'), // Thursday Night Football Week 1
+            weekLength: 7 * 24 * 60 * 60 * 1000
         };
         
         // Global variables  
@@ -1097,22 +1187,24 @@
         };
         let liveDataEnabled = true;
         
-        // Initialize app
+        // Initialize app (single listener; removed duplicate)
         document.addEventListener('DOMContentLoaded', async function() {
-            // Try to connect to secure API first
             await initSecureAPI();
-            
             initializeApp();
             setupEventListeners();
             
-            // Auto-detect current week and load games
             currentWeek = getCurrentNFLWeek();
             updateActiveWeekButton();
-            loadGames(currentWeek);
+            await loadGames(currentWeek);
             loadStandings();
+
+            // Initial flush of queued saves (in case API just came online)
+            await flushPendingSaves();
             
             // Auto-refresh data every hour
             setInterval(refreshGameData, 60 * 60 * 1000);
+            // Try to flush pending saves every 15s
+            setInterval(flushPendingSaves, 15000);
             
             // Show live status
             showLiveStatus();
@@ -1129,8 +1221,6 @@
             const now = new Date();
             const timeDiff = now.getTime() - NFL_SEASON.startDate.getTime();
             const weekNumber = Math.ceil(timeDiff / NFL_SEASON.weekLength);
-            
-            // Ensure week is between 1-18
             return Math.max(1, Math.min(18, weekNumber));
         }
         
@@ -1143,7 +1233,7 @@
             });
         }
         
-        // Sample NFL games data (normally would come from ESPN API)
+        // Sample NFL games data (fallbacks)
         const sampleGames = {
             1: [
                 {
@@ -1195,16 +1285,7 @@
             ]
         };
         
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-            setupEventListeners();
-            loadGames(currentWeek);
-            loadStandings();
-        });
-        
         function initializeApp() {
-            // Load saved data
             const savedPicks = JSON.parse(localStorage.getItem('nflPicks') || '{}');
             picks = savedPicks;
             
@@ -1213,7 +1294,6 @@
                 standings = savedStandings;
             }
             
-            // Display current week info
             displayCurrentWeekInfo();
         }
         
@@ -1239,22 +1319,22 @@
         }
         
         function setupEventListeners() {
-            // Week selector
             document.querySelectorAll('.week-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    document.querySelector('.week-btn.active').classList.remove('active');
+                    document.querySelector('.week-btn.active')?.classList.remove('active');
                     this.classList.add('active');
                     currentWeek = parseInt(this.dataset.week);
                     loadGames(currentWeek);
                 });
             });
             
-            // Player selector
             document.getElementById('playerSelect').addEventListener('change', function() {
                 currentPlayer = this.value;
                 if (currentPlayer) {
                     document.querySelector('.save-btn').style.display = 'block';
                     loadPlayerPicks();
+                } else {
+                    document.querySelector('.save-btn').style.display = 'none';
                 }
             });
         }
@@ -1266,16 +1346,17 @@
             try {
                 container.innerHTML = '<div class="loading">🔄 Loading live NFL games for Week ' + week + '...</div>';
                 
-                // Try to load from secure API first
+                // Try secure API for sheet-fed games first (optional; depends on backend implementation)
                 let gameData = [];
                 if (apiEnabled) {
-                    gameData = await loadGamesFromSecureAPI(week);
-                    if (gameData && gameData.length > 0) {
+                    const apiGames = await secureAPICall('getGames', { week });
+                    if (apiGames && apiGames.games && apiGames.games.length) {
+                        gameData = apiGames.games;
                         console.log('✅ Games loaded from secure API');
                     }
                 }
                 
-                // Fallback to live NFL data
+                // Fallback to public APIs
                 if (!gameData || gameData.length === 0) {
                     if (liveDataEnabled) {
                         try {
@@ -1301,7 +1382,6 @@
                 displayGames(games);
                 tiebreakerSection.style.display = 'block';
                 
-                // Check if games are completed and update standings
                 checkForCompletedGames();
                 
             } catch (error) {
@@ -1311,31 +1391,24 @@
         }
         
         async function fetchLiveNFLGames(week) {
-            // ESPN NFL API endpoint for 2025 season
             const apiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week=${week}&year=2025`;
-            
             try {
                 const response = await fetch(apiUrl);
                 if (!response.ok) throw new Error('API response not ok');
-                
                 const data = await response.json();
                 return processESPNData(data, week);
-                
             } catch (error) {
-                // Fallback to alternative API
                 console.log('ESPN API failed, trying alternative...');
                 return await fetchAlternativeNFLData(week);
             }
         }
         
         async function fetchAlternativeNFLData(week) {
-            // Alternative: NFL.com API for 2025 season
             const alternativeUrl = `https://www.nfl.com/ajax/scorestrip?season=2025&seasonType=REG&week=${week}`;
-            
             try {
                 const response = await fetch(alternativeUrl);
                 const data = await response.json();
-                return processNFLData(data, week);
+                return processNFLData ? processNFLData(data, week) : getSampleGames(week);
             } catch (error) {
                 throw new Error('All live data sources unavailable');
             }
@@ -1343,17 +1416,14 @@
         
         function processESPNData(data, week) {
             const games = [];
-            
             if (data.events && data.events.length > 0) {
                 data.events.forEach((event, index) => {
                     const competition = event.competitions[0];
                     const teams = competition.competitors;
                     
-                    // Get team names
                     const awayTeam = teams.find(t => t.homeAway === 'away')?.team.displayName || 'TBD';
                     const homeTeam = teams.find(t => t.homeAway === 'home')?.team.displayName || 'TBD';
                     
-                    // Format date and time
                     const gameDate = new Date(event.date);
                     const dayOfWeek = gameDate.toLocaleDateString('en-US', { weekday: 'long' });
                     const monthDay = gameDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -1363,13 +1433,11 @@
                         timeZoneName: 'short'
                     });
                     
-                    // Get over/under if available
                     let overUnder = 'TBD';
                     if (competition.odds && competition.odds.length > 0) {
                         overUnder = competition.odds[0].overUnder || 'TBD';
                     }
                     
-                    // Check if Monday Night Football
                     const isMNF = dayOfWeek === 'Monday' && gameDate.getHours() >= 20;
                     
                     games.push({
@@ -1385,99 +1453,36 @@
                     });
                 });
             }
-            
             return games.length > 0 ? games : getSampleGames(week);
         }
         
         function getSampleGames(week) {
-            // REAL 2025 NFL Schedule - Week 1
             const sampleGamesByWeek = {
                 1: [
-                    {
-                        id: 1, day: 'Thursday, Sep. 4', time: '8:20 PM ET',
-                        awayTeam: 'Dallas', homeTeam: 'Philadelphia', overUnder: 48.5, completed: false
-                    },
-                    {
-                        id: 2, day: 'Friday, Sep. 5', time: '8:15 PM ET',
-                        awayTeam: 'Kansas City', homeTeam: 'LA Chargers', overUnder: 47.0, completed: false
-                    },
-                    {
-                        id: 3, day: 'Sunday, Sep. 7', time: '1:00 PM ET', 
-                        awayTeam: 'Tampa Bay', homeTeam: 'Atlanta', overUnder: 42.5, completed: false
-                    },
-                    {
-                        id: 4, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
-                        awayTeam: 'Cincinnati', homeTeam: 'Cleveland', overUnder: 45.0, completed: false
-                    },
-                    {
-                        id: 5, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
-                        awayTeam: 'Miami', homeTeam: 'Indianapolis', overUnder: 46.5, completed: false
-                    },
-                    {
-                        id: 6, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
-                        awayTeam: 'Las Vegas', homeTeam: 'New England', overUnder: 41.0, completed: false
-                    },
-                    {
-                        id: 7, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
-                        awayTeam: 'Arizona', homeTeam: 'New Orleans', overUnder: 44.5, completed: false
-                    },
-                    {
-                        id: 8, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
-                        awayTeam: 'Pittsburgh', homeTeam: 'NY Jets', overUnder: 43.0, completed: false
-                    },
-                    {
-                        id: 9, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
-                        awayTeam: 'NY Giants', homeTeam: 'Washington', overUnder: 44.0, completed: false
-                    },
-                    {
-                        id: 10, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
-                        awayTeam: 'Carolina', homeTeam: 'Jacksonville', overUnder: 42.0, completed: false
-                    },
-                    {
-                        id: 11, day: 'Sunday, Sep. 7', time: '4:05 PM ET',
-                        awayTeam: 'Tennessee', homeTeam: 'Denver', overUnder: 43.5, completed: false
-                    },
-                    {
-                        id: 12, day: 'Sunday, Sep. 7', time: '4:05 PM ET',
-                        awayTeam: 'San Francisco', homeTeam: 'Seattle', overUnder: 45.5, completed: false
-                    },
-                    {
-                        id: 13, day: 'Sunday, Sep. 7', time: '4:25 PM ET',
-                        awayTeam: 'Detroit', homeTeam: 'Green Bay', overUnder: 49.0, completed: false
-                    },
-                    {
-                        id: 14, day: 'Sunday, Sep. 7', time: '4:25 PM ET',
-                        awayTeam: 'Houston', homeTeam: 'LA Rams', overUnder: 46.0, completed: false
-                    },
-                    {
-                        id: 15, day: 'Sunday, Sep. 7', time: '8:20 PM ET',
-                        awayTeam: 'Baltimore', homeTeam: 'Buffalo', overUnder: 48.0, completed: false
-                    },
-                    {
-                        id: 16, day: 'Monday, Sep. 8', time: '8:15 PM ET',
-                        awayTeam: 'Minnesota', homeTeam: 'Chicago', overUnder: 43.5, completed: false, isMNF: true
-                    }
+                    { id: 1, day: 'Thursday, Sep. 4', time: '8:20 PM ET', awayTeam: 'Dallas', homeTeam: 'Philadelphia', overUnder: 48.5, completed: false },
+                    { id: 2, day: 'Friday, Sep. 5', time: '8:15 PM ET', awayTeam: 'Kansas City', homeTeam: 'LA Chargers', overUnder: 47.0, completed: false },
+                    { id: 3, day: 'Sunday, Sep. 7', time: '1:00 PM ET', awayTeam: 'Tampa Bay', homeTeam: 'Atlanta', overUnder: 42.5, completed: false },
+                    { id: 4, day: 'Sunday, Sep. 7', time: '1:00 PM ET', awayTeam: 'Cincinnati', homeTeam: 'Cleveland', overUnder: 45.0, completed: false },
+                    { id: 5, day: 'Sunday, Sep. 7', time: '1:00 PM ET', awayTeam: 'Miami', homeTeam: 'Indianapolis', overUnder: 46.5, completed: false },
+                    { id: 6, day: 'Sunday, Sep. 7', time: '1:00 PM ET', awayTeam: 'Las Vegas', homeTeam: 'New England', overUnder: 41.0, completed: false },
+                    { id: 7, day: 'Sunday, Sep. 7', time: '1:00 PM ET', awayTeam: 'Arizona', homeTeam: 'New Orleans', overUnder: 44.5, completed: false },
+                    { id: 8, day: 'Sunday, Sep. 7', time: '1:00 PM ET', awayTeam: 'Pittsburgh', homeTeam: 'NY Jets', overUnder: 43.0, completed: false },
+                    { id: 9, day: 'Sunday, Sep. 7', time: '1:00 PM ET', awayTeam: 'NY Giants', homeTeam: 'Washington', overUnder: 44.0, completed: false },
+                    { id: 10, day: 'Sunday, Sep. 7', time: '1:00 PM ET', awayTeam: 'Carolina', homeTeam: 'Jacksonville', overUnder: 42.0, completed: false },
+                    { id: 11, day: 'Sunday, Sep. 7', time: '4:05 PM ET', awayTeam: 'Tennessee', homeTeam: 'Denver', overUnder: 43.5, completed: false },
+                    { id: 12, day: 'Sunday, Sep. 7', time: '4:05 PM ET', awayTeam: 'San Francisco', homeTeam: 'Seattle', overUnder: 45.5, completed: false },
+                    { id: 13, day: 'Sunday, Sep. 7', time: '4:25 PM ET', awayTeam: 'Detroit', homeTeam: 'Green Bay', overUnder: 49.0, completed: false },
+                    { id: 14, day: 'Sunday, Sep. 7', time: '4:25 PM ET', awayTeam: 'Houston', homeTeam: 'LA Rams', overUnder: 46.0, completed: false },
+                    { id: 15, day: 'Sunday, Sep. 7', time: '8:20 PM ET', awayTeam: 'Baltimore', homeTeam: 'Buffalo', overUnder: 48.0, completed: false },
+                    { id: 16, day: 'Monday, Sep. 8', time: '8:15 PM ET', awayTeam: 'Minnesota', homeTeam: 'Chicago', overUnder: 43.5, completed: false, isMNF: true }
                 ],
                 2: [
-                    {
-                        id: 1, day: 'Thursday, Sep. 11', time: '8:15 PM ET',
-                        awayTeam: 'Buffalo', homeTeam: 'Miami', overUnder: 49.5, completed: false
-                    },
-                    {
-                        id: 2, day: 'Sunday, Sep. 14', time: '1:00 PM ET',
-                        awayTeam: 'Indianapolis', homeTeam: 'Houston', overUnder: 44.5, completed: false
-                    },
-                    {
-                        id: 3, day: 'Sunday, Sep. 14', time: '4:05 PM ET',
-                        awayTeam: 'Dallas', homeTeam: 'New Orleans', overUnder: 46.0, completed: false
-                    },
-                    {
-                        id: 4, day: 'Monday, Sep. 15', time: '8:15 PM ET',
-                        awayTeam: 'Cincinnati', homeTeam: 'Washington', overUnder: 47.5, completed: false, isMNF: true
-                    }
+                    { id: 1, day: 'Thursday, Sep. 11', time: '8:15 PM ET', awayTeam: 'Buffalo', homeTeam: 'Miami', overUnder: 49.5, completed: false },
+                    { id: 2, day: 'Sunday, Sep. 14', time: '1:00 PM ET', awayTeam: 'Indianapolis', homeTeam: 'Houston', overUnder: 44.5, completed: false },
+                    { id: 3, day: 'Sunday, Sep. 14', time: '4:05 PM ET', awayTeam: 'Dallas', homeTeam: 'New Orleans', overUnder: 46.0, completed: false },
+                    { id: 4, day: 'Monday, Sep. 15', time: '8:15 PM ET', awayTeam: 'Cincinnati', homeTeam: 'Washington', overUnder: 47.5, completed: false, isMNF: true }
                 ]
             };
-            
             return sampleGamesByWeek[week] || [];
         }
         
@@ -1489,22 +1494,17 @@
         
         function checkForCompletedGames() {
             const completedGames = games.filter(game => game.completed);
-            
             if (completedGames.length === games.length && games.length > 0) {
-                // All games completed, calculate weekly winners
                 setTimeout(() => {
                     calculateWeeklyWinners();
                     updateStandings();
                     showWeeklyResults();
-                }, 2000); // Wait 2 seconds for dramatic effect
+                }, 2000);
             }
         }
         
         function calculateWeeklyWinners() {
-            // This would calculate based on actual game results
             console.log('🏆 Calculating weekly winners...');
-            
-            // Sample calculation logic (replace with real results)
             const playerScores = {
                 'Brixon': Math.floor(Math.random() * 5) + 10,
                 'Knox': Math.floor(Math.random() * 5) + 10,
@@ -1523,42 +1523,27 @@
                 totalGames: games.length
             };
             
-            // Update season totals
             standings.season[winner[0]] += 1;
             
-            // Save to localStorage
             localStorage.setItem('nflStandings', JSON.stringify(standings));
-            
-            // Update Google Sheets if enabled
-            if (googleSheetsEnabled) {
-                updateStandingsInSheet();
-            }
         }
         
         function showWeeklyResults() {
             const weekData = standings.weekly[currentWeek];
             if (weekData) {
-                // Show celebration modal or notification
-                setTimeout(() => {
-                    alert(`🏆 Week ${currentWeek} Champion: ${weekData.winner}!\n\nScore: ${weekData.score}/${weekData.totalGames}\n\n$12 Bowl Legend Status: ACHIEVED! 🔥`);
-                }, 1000);
+                showToast(`🏆 Week ${currentWeek} Champion: ${weekData.winner} — ${weekData.score}/${weekData.totalGames}`, 'success', 3500);
             }
         }
         
         function displayGames(gamesList) {
             const container = document.getElementById('gamesContainer');
-            
-            // Group games by day
             const gamesByDay = {};
             gamesList.forEach(game => {
-                if (!gamesByDay[game.day]) {
-                    gamesByDay[game.day] = [];
-                }
+                if (!gamesByDay[game.day]) gamesByDay[game.day] = [];
                 gamesByDay[game.day].push(game);
             });
             
             let html = '';
-            
             Object.keys(gamesByDay).forEach(day => {
                 html += `
                     <div class="game-day">
@@ -1599,12 +1584,11 @@
         
         function makePick(gameId, team) {
             if (!currentPlayer) {
-                alert('Please select your name first!');
+                showToast('Please select your name first!', 'error');
                 return;
             }
             
             const playerKey = `${currentPlayer}_week${currentWeek}`;
-            
             if (!picks[playerKey]) {
                 picks[playerKey] = {
                     player: currentPlayer,
@@ -1616,23 +1600,20 @@
             
             picks[playerKey].games[gameId] = team;
             
-            // Update UI
             const gameCard = document.querySelector(`[data-game-id="${gameId}"]`);
             const buttons = gameCard.querySelectorAll('.team-btn');
             buttons.forEach(btn => btn.classList.remove('selected'));
             
             const selectedBtn = Array.from(buttons).find(btn => btn.textContent.trim() === team);
-            selectedBtn.classList.add('selected');
+            if (selectedBtn) selectedBtn.classList.add('selected');
             
             gameCard.classList.add('selected');
             setTimeout(() => gameCard.classList.remove('selected'), 1000);
             
-            // Save to secure API if enabled
             if (apiEnabled) {
                 savePickToSecureAPI(currentPlayer, currentWeek, gameId, team, picks[playerKey].tiebreaker);
             }
             
-            // Auto-save picks locally as backup
             savePicks(false);
         }
         
@@ -1644,15 +1625,14 @@
                 document.getElementById('tiebreakerInput').value = playerPicks.tiebreaker;
             }
             
-            // Update game displays if games are loaded
             if (games.length > 0) {
                 displayGames(games);
             }
         }
         
-        function savePicks(showAlert = true) {
+        function savePicks(showUserToast = true) {
             if (!currentPlayer) {
-                alert('Please select your name first!');
+                showToast('Please select your name first!', 'error');
                 return;
             }
             
@@ -1664,10 +1644,7 @@
             }
             
             localStorage.setItem('nflPicks', JSON.stringify(picks));
-            
-            if (showAlert) {
-                alert('Your picks have been saved! 🏈');
-            }
+            if (showUserToast) showToast('Picks saved locally 💾', 'success');
         }
         
         function loadStandings() {
@@ -1679,7 +1656,6 @@
             const weeklyContainer = document.getElementById('weeklyStandings');
             let html = '';
             
-            // Show actual weekly winners from standings
             const completedWeeks = Object.keys(standings.weekly).sort((a, b) => parseInt(b) - parseInt(a));
             
             if (completedWeeks.length > 0) {
@@ -1693,7 +1669,6 @@
                     `;
                 });
             } else {
-                // Show sample data if no completed weeks
                 const sampleWeeklyWinners = {
                     1: { player: 'Kid3', score: '12/15' },
                     2: { player: 'Kid1', score: '11/16' },
@@ -1701,7 +1676,7 @@
                 };
                 
                 Object.keys(sampleWeeklyWinners).forEach(week => {
-                    if (parseInt(week) < currentWeek) { // Only show past weeks
+                    if (parseInt(week) < currentWeek) {
                         const winner = sampleWeeklyWinners[week];
                         html += `
                             <div class="standings-row">
@@ -1722,8 +1697,6 @@
         
         function updateSeasonStandings() {
             const seasonContainer = document.getElementById('seasonStandings');
-            
-            // Calculate actual season standings
             const seasonScores = Object.entries(standings.season)
                 .map(([player, wins]) => ({ player, wins }))
                 .sort((a, b) => b.wins - a.wins);
@@ -1741,14 +1714,7 @@
             seasonContainer.innerHTML = html;
         }
         
-        // Mock function to simulate getting live NFL data
-        // In production, this would call ESPN API
-        async function fetchNFLGames(week) {
-            // This now calls the live data functions above
-            return await fetchLiveNFLGames(week);
-        }
-        
-        // Add admin functions for manual control
+        // Admin helpers
         window.adminControls = {
             setWeek: (week) => {
                 currentWeek = week;
@@ -1756,27 +1722,23 @@
                 loadGames(currentWeek);
                 console.log('✅ Manually set to Week', week);
             },
-            
             toggleLiveData: () => {
                 liveDataEnabled = !liveDataEnabled;
                 console.log('🔄 Live data:', liveDataEnabled ? 'ENABLED' : 'DISABLED');
                 loadGames(currentWeek);
             },
-            
             processWeekResults: () => {
                 calculateWeeklyWinners();
                 updateStandings();
                 showWeeklyResults();
                 console.log('🏆 Week results processed manually');
             },
-            
             resetSeason: () => {
                 if (confirm('⚠️ Reset entire season? This cannot be undone!')) {
                     localStorage.clear();
                     location.reload();
                 }
             },
-            
             exportData: () => {
                 const data = {
                     picks: picks,
@@ -1784,10 +1746,7 @@
                     currentWeek: currentWeek
                 };
                 console.log('📊 Season Data Export:', data);
-                
-                // Download as JSON file
-                const blob = new Blob([JSON.stringify(data, null, 2)], 
-                    { type: 'application/json' });
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -1796,7 +1755,6 @@
             }
         };
         
-        // Add console help
         console.log(`
 🏈 $12 Bowl Admin Controls Available:
         
