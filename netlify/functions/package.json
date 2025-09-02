@@ -4,8 +4,5 @@
   "dependencies": {
     "google-spreadsheet": "^4.1.2",
     "google-auth-library": "^9.0.0"
-     "type": "module",
-      "dependencies": {
-        "googleapis": "^131.0.0"
   }
 }
