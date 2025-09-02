@@ -631,12 +631,12 @@
             <div class="player-selector">
                 <select id="playerSelect">
                     <option value="">Select Your Name</option>
-                    <option value="Kid1">Kid 1</option>
-                    <option value="Kid2">Kid 2</option>
-                    <option value="Kid3">Kid 3</option>
-                    <option value="Kid4">Kid 4</option>
-                    <option value="Kid5">Kid 5</option>
-                    <option value="Kid6">Kid 6</option>
+                    <option value="Brixon">Brixon</option>
+                    <option value="Knox">Knox</option>
+                    <option value="Makena">Makena</option>
+                    <option value="Cal">Cal</option>
+                    <option value="Will">Will</option>
+                    <option value="Jace">Jace</option>
                 </select>
             </div>
         </div>
@@ -674,7 +674,7 @@
         // Secure API Configuration
         const API_CONFIG = {
             // This will be your Netlify function URL
-            BASE_URL: 'https://12bowl.netlify.app/.netlify/functions/sheets-api',
+            BASE_URL: 'https://your-site-name.netlify.app/.netlify/functions/sheets-api',
             
             // No credentials needed in frontend - all secure on server!
             SHEETS: {
@@ -773,8 +773,8 @@
         let standings = {
             weekly: {},
             season: {
-                'Kid1': 0, 'Kid2': 0, 'Kid3': 0, 
-                'Kid4': 0, 'Kid5': 0, 'Kid6': 0
+                'Brixon': 0, 'Knox': 0, 'Makena': 0, 
+                'Cal': 0, 'Will': 0, 'Jace': 0
             }
         };
         let liveDataEnabled = true;
@@ -1188,12 +1188,12 @@
             
             // Sample calculation logic (replace with real results)
             const playerScores = {
-                'Kid1': Math.floor(Math.random() * 5) + 10,
-                'Kid2': Math.floor(Math.random() * 5) + 10,
-                'Kid3': Math.floor(Math.random() * 5) + 10,
-                'Kid4': Math.floor(Math.random() * 5) + 10,
-                'Kid5': Math.floor(Math.random() * 5) + 10,
-                'Kid6': Math.floor(Math.random() * 5) + 10
+                'Brixon': Math.floor(Math.random() * 5) + 10,
+                'Knox': Math.floor(Math.random() * 5) + 10,
+                'Makena': Math.floor(Math.random() * 5) + 10,
+                'Cal': Math.floor(Math.random() * 5) + 10,
+                'Will': Math.floor(Math.random() * 5) + 10,
+                'Jace': Math.floor(Math.random() * 5) + 10
             };
             
             const winner = Object.entries(playerScores)
