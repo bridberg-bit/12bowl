@@ -1,0 +1,672 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$12 Bowl - Where Legends Are Made</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #000000 50%, #1a1a1a 75%, #0a0a0a 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(178, 34, 34, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(178, 34, 34, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(178, 34, 34, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #B22222, transparent, #B22222);
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #B22222 0%, #ff4444 50%, #B22222 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(178, 34, 34, 0.5);
+            letter-spacing: -1px;
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .controls-section {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 30px;
+            margin-bottom: 40px;
+            align-items: center;
+        }
+        
+        .week-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .week-btn {
+            padding: 12px 18px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .week-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .week-btn:hover::before {
+            left: 100%;
+        }
+        
+        .week-btn:hover, .week-btn.active {
+            background: linear-gradient(135deg, #B22222 0%, #cc3333 100%);
+            border-color: #B22222;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(178, 34, 34, 0.4);
+        }
+        
+        .player-selector {
+            text-align: right;
+        }
+        
+        .player-selector select {
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
+            color: white;
+            cursor: pointer;
+            min-width: 220px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .player-selector select:focus {
+            outline: none;
+            border-color: #B22222;
+            box-shadow: 0 0 20px rgba(178, 34, 34, 0.3);
+        }
+        
+        .games-container {
+            display: grid;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .game-day {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .day-header {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #B22222;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+        
+        .day-header::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #B22222, transparent);
+            border-radius: 2px;
+        }
+        
+        .game-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(178, 34, 34, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .game-card:hover::before {
+            left: 100%;
+        }
+        
+        .game-card:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%);
+            transform: translateY(-4px);
+            box-shadow: 
+                0 16px 40px rgba(0, 0, 0, 0.4),
+                0 8px 16px rgba(178, 34, 34, 0.2);
+            border-color: rgba(178, 34, 34, 0.3);
+        }
+        
+        .game-card.selected {
+            border: 2px solid #B22222;
+            background: linear-gradient(135deg, rgba(178, 34, 34, 0.2) 0%, rgba(178, 34, 34, 0.1) 100%);
+            box-shadow: 
+                0 0 30px rgba(178, 34, 34, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .game-info {
+            flex: 1;
+        }
+        
+        .matchup {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+        
+        .game-time {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        
+        .over-under {
+            color: #B22222;
+            font-size: 1rem;
+            font-weight: 600;
+            display: inline-block;
+            background: rgba(178, 34, 34, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(178, 34, 34, 0.3);
+        }
+        
+        .mnf-badge {
+            color: #B22222;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-top: 8px;
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(178, 34, 34, 0.2), rgba(178, 34, 34, 0.1));
+            padding: 6px 16px;
+            border-radius: 25px;
+            border: 1px solid #B22222;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .pick-section {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .team-btn {
+            padding: 14px 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            font-size: 1rem;
+            min-width: 100px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .team-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: linear-gradient(135deg, #B22222, #cc3333);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.4s ease;
+            z-index: 0;
+        }
+        
+        .team-btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .team-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .team-btn.selected::before {
+            width: 120%;
+            height: 120%;
+        }
+        
+        .team-btn.selected {
+            color: white;
+            border-color: #B22222;
+            box-shadow: 0 0 20px rgba(178, 34, 34, 0.5);
+        }
+        
+        .tiebreaker {
+            background: linear-gradient(135deg, rgba(178, 34, 34, 0.2) 0%, rgba(178, 34, 34, 0.1) 100%);
+            border: 2px solid #B22222;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .tiebreaker h3 {
+            margin-bottom: 20px;
+            color: #B22222;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .tiebreaker input {
+            padding: 18px 25px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            text-align: center;
+            width: 180px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.4) 100%);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .tiebreaker input:focus {
+            outline: none;
+            border-color: #B22222;
+            box-shadow: 0 0 25px rgba(178, 34, 34, 0.4);
+        }
+        
+        .standings {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .standings h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #B22222;
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .standings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        
+        .standings-table {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .standings-table h3 {
+            background: linear-gradient(135deg, rgba(178, 34, 34, 0.4) 0%, rgba(178, 34, 34, 0.2) 100%);
+            padding: 20px;
+            text-align: center;
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(178, 34, 34, 0.3);
+        }
+        
+        .standings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .standings-row:last-child {
+            border-bottom: none;
+        }
+        
+        .standings-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .standings-row.winner {
+            background: linear-gradient(135deg, rgba(178, 34, 34, 0.3) 0%, rgba(178, 34, 34, 0.15) 100%);
+            font-weight: 700;
+            border-left: 4px solid #B22222;
+        }
+        
+        .standings-row .position {
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+        
+        .standings-row .score {
+            font-weight: 700;
+            color: #B22222;
+        }
+        
+        .save-btn {
+            display: block;
+            width: 250px;
+            margin: 40px auto;
+            padding: 18px;
+            background: linear-gradient(135deg, #B22222 0%, #cc3333 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(178, 34, 34, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .save-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.4s ease;
+        }
+        
+        .save-btn:hover::before {
+            width: 120%;
+            height: 120%;
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 40px rgba(178, 34, 34, 0.6);
+        }
+        
+        .save-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        @media (max-width: 1024px) {
+            .controls-section {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .player-selector {
+                text-align: center;
+            }
+            
+            .week-selector {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .game-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .pick-section {
+                justify-content: center;
+            }
+            
+            .standings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .error {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.3) 0%, rgba(220, 53, 69, 0.1) 100%);
+            border: 2px solid #dc3545;
+            color: #fff;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 25px 0;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #B22222, #cc3333);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #cc3333, #B22222);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏈 $12 Bowl 🏈</h1>
+            <p>Where Legends Are Made</p>
+        </div>
+        
+        <div class="controls-section">
+            <div class="week-selector">
+                <button class="week-btn active" data-week="1">Week 1</button>
+                <button class="week-btn" data-week="2">Week 2</button>
+                <button class="week-btn" data-week="3">Week 3</button>
+                <button class="week-btn" data-week="4">Week 4</button>
+                <button class="week-btn" data-week="5">Week 5</button>
+                <button class="week-btn" data-week="6">Week 6</button>
+                <button class="week-btn" data-week="7">Week 7</button>
+                <button class="week-btn" data-week="8">Week 8</button>
+                <button class="week-btn" data-week="9">Week 9</button>
+                <button class="week-btn" data-week="10">Week 10</button>
+                <button class="week-btn" data-week="11">Week 11</button>
+                <button class="week-btn" data-week="12">Week 12</button>
+                <button class="week-btn" data-week="13">Week 13</button>
+                <button class="week-btn" data-week="14">Week 14</button>
+                <button class="week-btn" data-week="15">Week 15</button>
+                <button class="week-btn" data-week="16">Week 16</button>
+                <button class="week-btn" data-week="17">Week 17</button>
+                <button class="week-btn" data-week="18">Week 18</button>
+            </div>
+            
+            <div class="player-selector">
+                <select id="playerSelect">
+                    <option value="">Select Your Name</option>
+                    <option value="Kid1">Kid 1</option>
+                    <option value="Kid2">Kid 2</option>
+                    <option value="Kid3">Kid 3</option>
+                    <option value="Kid4">Kid 4</option>
+                    <option value="Kid5">Kid 5</option>
+                    <option value="Kid6">Kid 6</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="gamesContainer" class="games-container">
+            <div class="loading">Loading NFL games for this week...</div>
+        </div>
+        
+        <div id="tiebreakerSection" class="tiebreaker" style="display: none;">
+            <h3>🔥 Monday Night Football Tiebreaker 🔥</h3>
+            <p style="margin-bottom: 20px; font-weight: 600;">Enter your prediction for total points scored:</p>
+            <input type="number" id="tiebreakerInput" placeholder="Total Points" min="0" max="150">
+        </div>
+        
+        <button class="save-btn" onclick="savePicks()" style="display: none;">
+            <span>Save My Picks</span>
+        </button>
+        
+        <div class="standings">
+            <h2>🏆 Standings 🏆</h2>
+            <div class="standings-grid">
+                <div class="standings-table">
+                    <h3>Weekly Champions</h3>
+                    <div id="weeklyStandings"></div>
+                </div>
+                <div class="standings-table">
+                    <h3>Season Leaderboard</h3>
+                    <div id="seasonStandings"></div>
+                </div>
+            </div>
+        </div>
+    </div>
