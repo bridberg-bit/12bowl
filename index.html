@@ -151,20 +151,40 @@
             padding: 15px 25px;
             font-size: 1.1rem;
             font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(178, 34, 34, 0.4);
             border-radius: 12px;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 20, 0.9) 100%);
             color: white;
             cursor: pointer;
             min-width: 220px;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         
         .player-selector select:focus {
             outline: none;
             border-color: #B22222;
-            box-shadow: 0 0 20px rgba(178, 34, 34, 0.3);
+            box-shadow: 0 0 20px rgba(178, 34, 34, 0.4);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(30, 30, 30, 0.95) 100%);
+        }
+        
+        .player-selector select:hover {
+            border-color: #B22222;
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(30, 30, 30, 0.95) 100%);
+            transform: translateY(-1px);
+        }
+        
+        .player-selector select option {
+            background: #1a1a1a;
+            color: white;
+            padding: 10px;
+            border: none;
+        }
+        
+        .player-selector select option:hover {
+            background: #B22222;
+            color: white;
         }
         
         .games-container {
@@ -521,6 +541,10 @@
         }
         
         @media (max-width: 1024px) {
+            .container {
+                padding: 15px;
+            }
+            
             .controls-section {
                 grid-template-columns: 1fr;
                 gap: 20px;
@@ -528,34 +552,328 @@
             
             .player-selector {
                 text-align: center;
+                order: -1; /* Player selector goes to top on tablet */
             }
             
             .week-selector {
                 justify-content: center;
+                gap: 6px;
+            }
+            
+            .week-btn {
+                padding: 10px 14px;
+                font-size: 0.85rem;
+                min-width: auto;
             }
         }
         
         @media (max-width: 768px) {
             .container {
-                padding: 15px;
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+                margin-bottom: 25px;
             }
             
             .header h1 {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
+                margin-bottom: 6px;
+                letter-spacing: -0.5px;
             }
             
+            .header p {
+                font-size: 1rem;
+                letter-spacing: 1px;
+            }
+            
+            /* Mobile week selector - scrollable */
+            .week-selector {
+                display: flex;
+                overflow-x: auto;
+                overflow-y: hidden;
+                gap: 8px;
+                padding: 10px 5px;
+                margin: 0 -10px; /* Extend to edges */
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .week-selector::-webkit-scrollbar {
+                height: 4px;
+            }
+            
+            .week-selector::-webkit-scrollbar-thumb {
+                background: rgba(178, 34, 34, 0.6);
+                border-radius: 2px;
+            }
+            
+            .week-btn {
+                flex-shrink: 0;
+                padding: 8px 16px;
+                font-size: 0.9rem;
+                white-space: nowrap;
+                scroll-snap-align: start;
+                min-width: 70px;
+            }
+            
+            .player-selector {
+                margin-bottom: 20px;
+            }
+            
+            .player-selector select {
+                min-width: 200px;
+                width: 100%;
+                max-width: 280px;
+                padding: 18px 20px;
+                font-size: 1.2rem;
+                border-radius: 16px;
+            }
+            
+            /* Mobile game cards - stack vertically */
             .game-card {
                 flex-direction: column;
                 text-align: center;
                 gap: 20px;
+                padding: 20px 16px;
+            }
+            
+            .game-info {
+                order: 1;
+            }
+            
+            .matchup {
+                font-size: 1.3rem;
+                line-height: 1.2;
+                margin-bottom: 10px;
+            }
+            
+            .game-time {
+                font-size: 1rem;
+                margin-bottom: 8px;
+            }
+            
+            .over-under {
+                font-size: 1rem;
+                padding: 6px 16px;
+                border-radius: 25px;
+                display: inline-block;
+            }
+            
+            .mnf-badge {
+                font-size: 1rem;
+                padding: 8px 20px;
+                margin-top: 10px;
+                border-radius: 30px;
             }
             
             .pick-section {
+                order: 2;
                 justify-content: center;
+                gap: 15px;
+                width: 100%;
+            }
+            
+            .team-btn {
+                flex: 1;
+                max-width: 140px;
+                padding: 16px 12px;
+                font-size: 1.1rem;
+                font-weight: 800;
+                border-radius: 16px;
+                min-height: 54px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .team-btn span {
+                text-align: center;
+                line-height: 1.1;
+            }
+            
+            .tiebreaker {
+                padding: 25px 15px;
+                margin-bottom: 30px;
+            }
+            
+            .tiebreaker h3 {
+                font-size: 1.3rem;
+                margin-bottom: 15px;
+            }
+            
+            .tiebreaker p {
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
+            
+            .tiebreaker input {
+                width: 160px;
+                padding: 20px;
+                font-size: 1.5rem;
+                border-radius: 20px;
+            }
+            
+            .save-btn {
+                width: 90%;
+                max-width: 300px;
+                padding: 20px;
+                font-size: 1.4rem;
+                border-radius: 20px;
+                margin: 30px auto;
+            }
+            
+            .standings {
+                padding: 20px 15px;
+            }
+            
+            .standings h2 {
+                font-size: 1.6rem;
+                margin-bottom: 25px;
             }
             
             .standings-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .standings-table h3 {
+                padding: 15px 10px;
+                font-size: 1rem;
+            }
+            
+            .standings-row {
+                padding: 14px 15px;
+                font-size: 1rem;
+            }
+            
+            .standings-row .position {
+                font-size: 1rem;
+            }
+            
+            .standings-row .score {
+                font-size: 1rem;
+            }
+            
+            /* Live status indicator - adjust for mobile */
+            .header::before {
+                display: none; /* Hide complex border on mobile */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .game-card {
+                padding: 16px 12px;
+                margin-bottom: 12px;
+            }
+            
+            .matchup {
+                font-size: 1.1rem;
+            }
+            
+            .team-btn {
+                font-size: 1rem;
+                padding: 14px 8px;
+                min-height: 48px;
+            }
+            
+            .week-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                min-width: 60px;
+            }
+            
+            .player-selector select {
+                font-size: 1.1rem;
+                padding: 16px 15px;
+            }
+            
+            .tiebreaker input {
+                width: 140px;
+                font-size: 1.3rem;
+            }
+        }
+        
+        /* Mobile-specific enhancements */
+        @media (max-width: 768px) {
+            /* Prevent zoom on input focus */
+            input, select {
+                font-size: 16px !important;
+            }
+            
+            /* Better touch targets */
+            .week-btn, .team-btn, .save-btn {
+                min-height: 44px; /* Apple's recommended touch target */
+            }
+            
+            /* Smooth scrolling for week selector */
+            .week-selector {
+                scroll-behavior: smooth;
+            }
+            
+            /* Hide scrollbar indicator on mobile Safari */
+            .week-selector {
+                scrollbar-width: thin;
+            }
+            
+            /* Loading and error states for mobile */
+            .loading {
+                padding: 40px 20px;
+                font-size: 1.1rem;
+            }
+            
+            .error {
+                padding: 20px 15px;
+                font-size: 1rem;
+                margin: 20px 10px;
+            }
+        }
+        
+        /* Landscape phone optimization */
+        @media (max-width: 896px) and (orientation: landscape) {
+            .header {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 4px;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .game-card {
+                flex-direction: row;
+                text-align: left;
+                gap: 15px;
+                padding: 16px;
+            }
+            
+            .pick-section {
+                order: unset;
+            }
+        }
+        
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .header h1 {
+                text-rendering: optimizeLegibility;
+            }
+            
+            .game-card {
+                border-width: 0.5px;
             }
         }
         
