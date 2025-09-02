@@ -671,7 +671,101 @@
     </div>
 
     <script>
-        // Global variables
+        // Secure API Configuration
+        const API_CONFIG = {
+            // This will be your Netlify function URL
+            BASE_URL: 'https://12bowl.netlify.app/.netlify/functions/sheets-api',
+            
+            // No credentials needed in frontend - all secure on server!
+            SHEETS: {
+                GAMES: 'Games',
+                PICKS: 'Picks', 
+                STANDINGS: 'Standings',
+                SETTINGS: 'Settings'
+            }
+        };
+        
+        // Secure API calls
+        let apiEnabled = true;
+        
+        // Initialize secure connection
+        async function initSecureAPI() {
+            try {
+                // Test the secure API connection
+                const response = await fetch(`${API_CONFIG.BASE_URL}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'getCurrentWeek' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    apiEnabled = true;
+                    console.log('✅ Secure API connected successfully!');
+                    
+                    // Use server's current week if available
+                    if (data.currentWeek) {
+                        currentWeek = data.currentWeek;
+                        updateActiveWeekButton();
+                    }
+                    
+                    return true;
+                }
+            } catch (error) {
+                console.log('⚠️ Secure API unavailable, using local storage:', error.message);
+                apiEnabled = false;
+                return false;
+            }
+        }
+        
+        async function secureAPICall(action, data = {}) {
+            if (!apiEnabled) return null;
+            
+            try {
+                const response = await fetch(`${API_CONFIG.BASE_URL}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, data })
+                });
+                
+                if (!response.ok) throw new Error('API call failed');
+                
+                return await response.json();
+                
+            } catch (error) {
+                console.log(`API call ${action} failed:`, error);
+                return null;
+            }
+        }
+        
+        async function loadGamesFromSecureAPI(week) {
+            const result = await secureAPICall('getGames', { week });
+            return result?.games || null;
+        }
+        
+        async function savePickToSecureAPI(player, week, gameId, teamPick, tiebreaker) {
+            return await secureAPICall('savePick', {
+                player,
+                week,
+                gameId,
+                teamPick,
+                tiebreaker
+            });
+        }
+        
+        async function getStandingsFromSecureAPI() {
+            const result = await secureAPICall('getStandings');
+            return result?.standings || null;
+        }
+        
+        // NFL Season Configuration
+        const NFL_SEASON = {
+            year: 2025,
+            startDate: new Date('2025-09-04'), // Thursday Night Football Week 1 - Cowboys vs Eagles
+            weekLength: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
+        };
+        
+        // Global variables  
         let currentWeek = 1;
         let currentPlayer = '';
         let games = [];
@@ -685,15 +779,11 @@
         };
         let liveDataEnabled = true;
         
-        // NFL Season Configuration
-        const NFL_SEASON = {
-            year: 2024,
-            startDate: new Date('2024-09-05'), // Thursday Night Football Week 1
-            weekLength: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
-        };
-        
         // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Try to connect to secure API first
+            await initSecureAPI();
+            
             initializeApp();
             setupEventListeners();
             
@@ -858,18 +948,28 @@
             try {
                 container.innerHTML = '<div class="loading">🔄 Loading live NFL games for Week ' + week + '...</div>';
                 
-                // Try to fetch live NFL data first
+                // Try to load from secure API first
                 let gameData = [];
-                if (liveDataEnabled) {
-                    try {
-                        gameData = await fetchLiveNFLGames(week);
-                        console.log('✅ Live NFL data loaded successfully');
-                    } catch (error) {
-                        console.log('⚠️ Live data unavailable, using sample data:', error.message);
+                if (apiEnabled) {
+                    gameData = await loadGamesFromSecureAPI(week);
+                    if (gameData && gameData.length > 0) {
+                        console.log('✅ Games loaded from secure API');
+                    }
+                }
+                
+                // Fallback to live NFL data
+                if (!gameData || gameData.length === 0) {
+                    if (liveDataEnabled) {
+                        try {
+                            gameData = await fetchLiveNFLGames(week);
+                            console.log('✅ Live NFL data loaded successfully');
+                        } catch (error) {
+                            console.log('⚠️ Live data unavailable, using sample data:', error.message);
+                            gameData = getSampleGames(week);
+                        }
+                    } else {
                         gameData = getSampleGames(week);
                     }
-                } else {
-                    gameData = getSampleGames(week);
                 }
                 
                 games = gameData;
@@ -893,8 +993,8 @@
         }
         
         async function fetchLiveNFLGames(week) {
-            // ESPN NFL API endpoint
-            const apiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard`;
+            // ESPN NFL API endpoint for 2025 season
+            const apiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week=${week}&year=2025`;
             
             try {
                 const response = await fetch(apiUrl);
@@ -911,8 +1011,8 @@
         }
         
         async function fetchAlternativeNFLData(week) {
-            // Alternative: NFL.com API or other source
-            const alternativeUrl = `https://www.nfl.com/ajax/scorestrip?season=2024&seasonType=REG&week=${week}`;
+            // Alternative: NFL.com API for 2025 season
+            const alternativeUrl = `https://www.nfl.com/ajax/scorestrip?season=2025&seasonType=REG&week=${week}`;
             
             try {
                 const response = await fetch(alternativeUrl);
@@ -972,45 +1072,89 @@
         }
         
         function getSampleGames(week) {
-            // Enhanced sample data for multiple weeks
+            // REAL 2025 NFL Schedule - Week 1
             const sampleGamesByWeek = {
                 1: [
                     {
-                        id: 1, day: 'Thursday, Sep. 5', time: '8:20 PM ET',
-                        awayTeam: 'Baltimore', homeTeam: 'Kansas City', overUnder: 46.5, completed: false
+                        id: 1, day: 'Thursday, Sep. 4', time: '8:20 PM ET',
+                        awayTeam: 'Dallas', homeTeam: 'Philadelphia', overUnder: 48.5, completed: false
                     },
                     {
-                        id: 2, day: 'Sunday, Sep. 8', time: '1:00 PM ET', 
-                        awayTeam: 'Atlanta', homeTeam: 'Pittsburgh', overUnder: 42.0, completed: false
+                        id: 2, day: 'Friday, Sep. 5', time: '8:15 PM ET',
+                        awayTeam: 'Kansas City', homeTeam: 'LA Chargers', overUnder: 47.0, completed: false
                     },
                     {
-                        id: 3, day: 'Sunday, Sep. 8', time: '1:00 PM ET',
-                        awayTeam: 'Miami', homeTeam: 'Jacksonville', overUnder: 47.5, completed: false
+                        id: 3, day: 'Sunday, Sep. 7', time: '1:00 PM ET', 
+                        awayTeam: 'Tampa Bay', homeTeam: 'Atlanta', overUnder: 42.5, completed: false
                     },
                     {
-                        id: 4, day: 'Sunday, Sep. 8', time: '4:25 PM ET',
-                        awayTeam: 'Green Bay', homeTeam: 'Philadelphia', overUnder: 48.5, completed: false
+                        id: 4, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
+                        awayTeam: 'Cincinnati', homeTeam: 'Cleveland', overUnder: 45.0, completed: false
                     },
                     {
-                        id: 5, day: 'Monday, Sep. 9', time: '8:15 PM ET',
-                        awayTeam: 'NY Jets', homeTeam: 'San Francisco', overUnder: 43.5, completed: false, isMNF: true
+                        id: 5, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
+                        awayTeam: 'Miami', homeTeam: 'Indianapolis', overUnder: 46.5, completed: false
+                    },
+                    {
+                        id: 6, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
+                        awayTeam: 'Las Vegas', homeTeam: 'New England', overUnder: 41.0, completed: false
+                    },
+                    {
+                        id: 7, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
+                        awayTeam: 'Arizona', homeTeam: 'New Orleans', overUnder: 44.5, completed: false
+                    },
+                    {
+                        id: 8, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
+                        awayTeam: 'Pittsburgh', homeTeam: 'NY Jets', overUnder: 43.0, completed: false
+                    },
+                    {
+                        id: 9, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
+                        awayTeam: 'NY Giants', homeTeam: 'Washington', overUnder: 44.0, completed: false
+                    },
+                    {
+                        id: 10, day: 'Sunday, Sep. 7', time: '1:00 PM ET',
+                        awayTeam: 'Carolina', homeTeam: 'Jacksonville', overUnder: 42.0, completed: false
+                    },
+                    {
+                        id: 11, day: 'Sunday, Sep. 7', time: '4:05 PM ET',
+                        awayTeam: 'Tennessee', homeTeam: 'Denver', overUnder: 43.5, completed: false
+                    },
+                    {
+                        id: 12, day: 'Sunday, Sep. 7', time: '4:05 PM ET',
+                        awayTeam: 'San Francisco', homeTeam: 'Seattle', overUnder: 45.5, completed: false
+                    },
+                    {
+                        id: 13, day: 'Sunday, Sep. 7', time: '4:25 PM ET',
+                        awayTeam: 'Detroit', homeTeam: 'Green Bay', overUnder: 49.0, completed: false
+                    },
+                    {
+                        id: 14, day: 'Sunday, Sep. 7', time: '4:25 PM ET',
+                        awayTeam: 'Houston', homeTeam: 'LA Rams', overUnder: 46.0, completed: false
+                    },
+                    {
+                        id: 15, day: 'Sunday, Sep. 7', time: '8:20 PM ET',
+                        awayTeam: 'Baltimore', homeTeam: 'Buffalo', overUnder: 48.0, completed: false
+                    },
+                    {
+                        id: 16, day: 'Monday, Sep. 8', time: '8:15 PM ET',
+                        awayTeam: 'Minnesota', homeTeam: 'Chicago', overUnder: 43.5, completed: false, isMNF: true
                     }
                 ],
                 2: [
                     {
-                        id: 1, day: 'Thursday, Sep. 12', time: '8:15 PM ET',
+                        id: 1, day: 'Thursday, Sep. 11', time: '8:15 PM ET',
                         awayTeam: 'Buffalo', homeTeam: 'Miami', overUnder: 49.5, completed: false
                     },
                     {
-                        id: 2, day: 'Sunday, Sep. 15', time: '1:00 PM ET',
+                        id: 2, day: 'Sunday, Sep. 14', time: '1:00 PM ET',
                         awayTeam: 'Indianapolis', homeTeam: 'Houston', overUnder: 44.5, completed: false
                     },
                     {
-                        id: 3, day: 'Sunday, Sep. 15', time: '4:05 PM ET',
+                        id: 3, day: 'Sunday, Sep. 14', time: '4:05 PM ET',
                         awayTeam: 'Dallas', homeTeam: 'New Orleans', overUnder: 46.0, completed: false
                     },
                     {
-                        id: 4, day: 'Monday, Sep. 16', time: '8:15 PM ET',
+                        id: 4, day: 'Monday, Sep. 15', time: '8:15 PM ET',
                         awayTeam: 'Cincinnati', homeTeam: 'Washington', overUnder: 47.5, completed: false, isMNF: true
                     }
                 ]
@@ -1066,6 +1210,11 @@
             
             // Save to localStorage
             localStorage.setItem('nflStandings', JSON.stringify(standings));
+            
+            // Update Google Sheets if enabled
+            if (googleSheetsEnabled) {
+                updateStandingsInSheet();
+            }
         }
         
         function showWeeklyResults() {
@@ -1160,7 +1309,12 @@
             gameCard.classList.add('selected');
             setTimeout(() => gameCard.classList.remove('selected'), 1000);
             
-            // Auto-save picks
+            // Save to secure API if enabled
+            if (apiEnabled) {
+                savePickToSecureAPI(currentPlayer, currentWeek, gameId, team, picks[playerKey].tiebreaker);
+            }
+            
+            // Auto-save picks locally as backup
             savePicks(false);
         }
         
