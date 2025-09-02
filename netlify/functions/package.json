@@ -1,8 +1,8 @@
 {
-  "name": "12bowl-secure",
-  "version": "1.0.0",
+  "name": "12-bowl",
+  "private": true,
+  "type": "module",
   "dependencies": {
-    "google-spreadsheet": "^4.1.2",
-    "google-auth-library": "^9.0.0"
+    "googleapis": "^131.0.0"
   }
 }
