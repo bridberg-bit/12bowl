@@ -423,35 +423,70 @@ async function getGames(sheets, sheetId, data) {
 async function getPicks(sheets, sheetId, data) {
     try {
         const { player, week } = data;
-        log(`Getting picks for player: ${player}, week: ${week}`);
+        log(`Getting consolidated picks for player: ${player}, week: ${week}`);
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: sheetId,
-            range: 'Picks!A:F',
+            range: 'Picks!A:Z',
         });
 
         const rows = response.data.values || [];
         
-        // Filter picks for the requested player and week
-        const playerPicks = rows
-            .slice(1) // Skip header
-            .filter(row => row[0] === player && row[1] === String(week))
-            .map(row => ({
-                player: row[0],
-                week: parseInt(row[1]),
-                gameId: row[2],
-                teamPick: row[3],
-                tiebreaker: row[4] ? parseInt(row[4]) : null,
-                timestamp: row[5]
-            }));
+        // Look for the consolidated row for this player/week
+        const playerWeekKey = `${player}_Week${week}`;
+        const playerRow = rows.find(row => row[0] === playerWeekKey);
+        
+        if (!playerRow) {
+            log(`No picks found for ${playerWeekKey}`);
+            return { 
+                picks: [], 
+                success: true,
+                player: player,
+                week: parseInt(week),
+                consolidated: true
+            };
+        }
 
-        log(`Found ${playerPicks.length} picks`);
+        // Parse the consolidated row into individual picks
+        const picks = [];
+        
+        // Games are stored in columns C onwards (index 2+)
+        for (let gameIndex = 1; gameIndex <= 20; gameIndex++) {
+            const columnIndex = 2 + gameIndex - 1; // Game1 is in column C (index 2)
+            const teamPick = playerRow[columnIndex];
+            
+            if (teamPick && teamPick.trim()) {
+                picks.push({
+                    player: player,
+                    week: parseInt(week),
+                    gameId: gameIndex.toString(),
+                    teamPick: teamPick.trim(),
+                    tiebreaker: null // Will be set below
+                });
+            }
+        }
+
+        // Get tiebreaker from column Y (index 24)
+        const tiebreaker = playerRow[24] ? parseInt(playerRow[24]) : null;
+        
+        // Add tiebreaker to all picks (or create a separate tiebreaker entry)
+        if (picks.length > 0 && tiebreaker) {
+            picks.forEach(pick => pick.tiebreaker = tiebreaker);
+        }
+
+        // Get timestamp from column Z (index 25)  
+        const lastUpdated = playerRow[25] || null;
+
+        log(`Found ${picks.length} consolidated picks with tiebreaker: ${tiebreaker}`);
 
         return { 
-            picks: playerPicks, 
+            picks: picks, 
             success: true,
             player: player,
-            week: parseInt(week)
+            week: parseInt(week),
+            tiebreaker: tiebreaker,
+            lastUpdated: lastUpdated,
+            consolidated: true
         };
 
     } catch (error) {
@@ -459,7 +494,9 @@ async function getPicks(sheets, sheetId, data) {
         return { 
             picks: [], 
             success: false, 
-            error: error.message 
+            error: error.message,
+            player: data.player,
+            week: parseInt(data.week)
         };
     }
 }
