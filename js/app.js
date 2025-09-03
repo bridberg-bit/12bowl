@@ -101,6 +101,12 @@ async function initializeApp() {
   // Load saved data from localStorage
   loadSavedData();
   
+  // Always load fallback players first so dropdown isn't empty
+  const fallbackPlayers = ['Alex', 'Jordan', 'Casey', 'Riley', 'Morgan', 'Taylor'];
+  App.players = fallbackPlayers;
+  updatePlayerDropdown(fallbackPlayers);
+  Logger.info('Loaded fallback players for immediate display');
+  
   // Initialize API connection
   await API.initialize();
   App.isOnlineMode = API.isConnected();
