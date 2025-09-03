@@ -1,4 +1,30 @@
-const { google } = require('googleapis');
+async function getPlayers(sheets, sheetId, data) {
+    try {
+        log('Getting player names from Standings sheet');
+
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: sheetId,
+            range: 'Standings!A:A', // Just the player names column
+        });
+
+        const rows = response.data.values || [];
+        log(`Raw sheet data received: ${JSON.stringify(rows)}`);
+        
+        // Skip header and extract player names
+        const players = rows
+            .slice(1) // Skip header row
+            .filter(row => row && row[0] && row[0].trim()) // Only non-empty rows
+            .map(row => {
+                let playerName = row[0].trim();
+                log(`Processing player name: "${playerName}"`);
+                return playerName;
+            });
+
+        log(`Processed ${players.length} players: ${players.join(', ')}`);
+
+        // If we got a concatenated string, try to split it
+        if (players.length === 1 && players[0].length > 20) {
+            log(`Detected concatenated string: ${const { google } = require('googleapis');
 
 // Helper function for logging
 function log(message, data = null) {
