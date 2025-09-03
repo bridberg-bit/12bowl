@@ -17,7 +17,7 @@ window.Config = {
     VERSION: '2.0.0',
     NAME: '12Bowl NFL Pick\'em',
     MAX_WEEKS: 18,
-    PLAYERS: ['Kid1', 'Kid2', 'Kid3', 'Kid4', 'Kid5', 'Kid6']
+    PLAYERS: ['Brixon', 'Knox', 'Makena', 'Cal', 'Will', 'Jace']
   },
   
   // Timing
