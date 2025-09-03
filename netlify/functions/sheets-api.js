@@ -173,6 +173,10 @@ exports.handler = async (event, context) => {
                 result = await getStandings(sheets, SHEET_ID, data);
                 break;
 
+            case 'getPlayers':
+                result = await getPlayers(sheets, SHEET_ID, data);
+                break;
+
             default:
                 log(`Unknown action: ${action}`);
                 return {
@@ -180,7 +184,7 @@ exports.handler = async (event, context) => {
                     headers,
                     body: JSON.stringify({ 
                         error: `Unknown action: ${action}`,
-                        availableActions: ['getCurrentWeek', 'savePick', 'getGames', 'getPicks', 'getStandings']
+                        availableActions: ['getCurrentWeek', 'savePick', 'getGames', 'getPicks', 'getStandings', 'getPlayers']
                     })
                 };
         }
