@@ -1,7 +1,36 @@
 {
-  "name": "12-bowl",
+  "name": "12-bowl-nfl-pickem",
+  "version": "1.1.0",
+  "description": "NFL Pick'em app for 6 kids with Google Sheets backend",
   "private": true,
+  "main": "index.html",
+  "scripts": {
+    "start": "netlify dev",
+    "build": "echo 'No build step required for static site'",
+    "test": "echo 'No tests configured'",
+    "deploy": "netlify deploy --prod"
+  },
   "dependencies": {
     "googleapis": "^131.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": [
+    "nfl",
+    "picks",
+    "fantasy",
+    "sports",
+    "google-sheets",
+    "netlify"
+  ],
+  "author": "12Bowl Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/12bowl.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
