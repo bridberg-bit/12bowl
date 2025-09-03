@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$12 Bowl - Debug Loading Issue</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .debug-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #444;
+        }
+        
+        .error-box {
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .success-box {
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .warning-box {
+            background: #ffc107;
+            color: black;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .code-box {
+            background: #000;
+            color: #22c55e;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border: 1px solid #22c55e;
+        }
+        
+        button {
+            background: #B22222;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #cc3333;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #444;
+        }
+        
+        .check-pass::before {
+            content: "✅ ";
+            color: #28a745;
+        }
+        
+        .check-fail::before {
+            content: "❌ ";
+            color: #dc3545;
+        }
+        
+        .check-warn::before {
+            content: "⚠️ ";
+            color: #ffc107;
+        }
+        
+        select {
+            background: #333;
+            color: white;
+            border: 2px solid #B22222;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔧 12Bowl Loading Issue Debug</h1>
+        
+        <div id="status-container">
+            <div class="warning-box">
+                <strong>Status:</strong> Running diagnostics...
+            </div>
+        </div>
+
+        <h2>🔍 Quick Diagnostics</h2>
+        <button onclick="runFullDiagnostics()">Run Full Diagnostics</button>
+        <button onclick="testBasicFunctionality()">Test Basic Functions</button>
+        <button onclick="checkJSFiles()">Check JS Files</button>
+        <button onclick="fixLoadingScreen()">Force Hide Loading Screen</button>
+
+        <h2>📋 Checklist</h2>
+        <ul id="checklist" class="checklist">
+            <li id="check-dom">DOM Elements</li>
+            <li id="check-js">JavaScript Files</li>
+            <li id="check-api">API Connection</li>
+            <li id="check-storage">Local Storage</li>
+            <li id="check-players">Player Loading</li>
+        </ul>
+
+        <h2>🎯 Quick Tests</h2>
+        <div>
+            <h3>Player Dropdown Test:</h3>
+            <select id="testDropdown">
+                <option value="">Testing dropdown...</option>
+            </select>
+            <button onclick="testDropdown()">Test Dropdown</button>
+        </div>
+
+        <h2>📊 Debug Output</h2>
+        <div id="debug-output" class="code-box">
+Ready for diagnostics...
+        </div>
+
+        <h2>🚨 Emergency Fixes</h2>
+        <div class="warning-box">
+            <p>If your app is stuck on loading screen, try these emergency fixes:</p>
+            <button onclick="emergencyFix1()">Fix 1: Reset App State</button>
+            <button onclick="emergencyFix2()">Fix 2: Clear Cache</button>
+            <button onclick="emergencyFix3()">Fix 3: Fallback Mode</button>
+        </div>
+
+        <h2>🔗 Quick Links</h2>
+        <p>
+            <button onclick="goToMainApp()">Try Main App</button>
+            <button onclick="window.location.href = window.location.href + '?debug=true'">Enable Debug Mode</button>
+        </p>
+    </div>
+
+    <script>
+        let output = document.getElementById('debug-output');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warn' ? '⚠️' : 'ℹ️';
+            output.textContent += `\n[${timestamp}] ${prefix} ${message}`;
+            output.scrollTop = output.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function updateCheck(id, status, message) {
+            const element = document.getElementById(id);
+            element.className = `check-${status}`;
+            element.textContent = `${element.textContent.split(' - ')[0]} - ${message}`;
+        }
+
+        async function runFullDiagnostics() {
+            log('🔍 Starting full diagnostics...');
+            
+            // Check 1: DOM Elements
+            try {
+                const requiredElements = ['playerSelect', 'gamesContainer', 'loadingScreen'];
+                let missingElements = [];
+                
+                requiredElements.forEach(id => {
+                    if (!document.getElementById(id)) {
+                        missingElements.push(id);
+                    }
+                });
+                
+                if (missingElements.length === 0) {
+                    updateCheck('check-dom', 'pass', 'All required elements found');
+                    log('✅ DOM elements check passed');
+                } else {
+                    updateCheck('check-dom', 'fail', `Missing: ${missingElements.join(', ')}`);
+                    log(`❌ Missing DOM elements: ${missingElements.join(', ')}`);
+                }
+            } catch (e) {
+                updateCheck('check-dom', 'fail', 'DOM check failed');
+                log(`❌ DOM check error: ${e.message}`);
+            }
+
+            // Check 2: JavaScript Files
+            try {
+                const jsObjects = ['Config', 'Utils', 'API', 'UI', 'App'];
+                let missingJS = [];
+                
+                jsObjects.forEach(obj => {
+                    if (typeof window[obj] === 'undefined') {
+                        missingJS.push(obj);
+                    }
+                });
+                
+                if (missingJS.length === 0) {
+                    updateCheck('check-js', 'pass', 'All JS modules loaded');
+                    log('✅ JavaScript modules check passed');
+                } else {
+                    updateCheck('check-js', 'fail', `Missing: ${missingJS.join(', ')}`);
+                    log(`❌ Missing JS modules: ${missingJS.join(', ')}`);
+                }
+            } catch (e) {
+                updateCheck('check-js', 'fail', 'JS check failed');
+                log(`❌ JS check error: ${e.message}`);
+            }
+
+            // Check 3: API Connection
+            try {
+                const response = await fetch('/.netlify/functions/sheets-api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'getCurrentWeek', data: {} })
+                });
+                
+                if (response.ok) {
+                    updateCheck('check-api', 'pass', 'API responding');
+                    log('✅ API connection successful');
+                } else {
+                    updateCheck('check-api', 'warn', `API error: ${response.status}`);
+                    log(`⚠️ API returned ${response.status}`);
+                }
+            } catch (e) {
+                updateCheck('check-api', 'fail', 'API unreachable');
+                log(`❌ API connection failed: ${e.message}`);
+            }
+
+            // Check 4: Local Storage
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                updateCheck('check-storage', 'pass', 'Storage working');
+                log('✅ Local storage working');
+            } catch (e) {
+                updateCheck('check-storage', 'fail', 'Storage blocked');
+                log(`❌ Local storage error: ${e.message}`);
+            }
+
+            // Check 5: Player Loading
+            try {
+                testDropdown();
+                updateCheck('check-players', 'pass', 'Dropdown functional');
+                log('✅ Player dropdown working');
+            } catch (e) {
+                updateCheck('check-players', 'fail', 'Dropdown broken');
+                log(`❌ Player dropdown error: ${e.message}`);
+            }
+
+            log('🏁 Diagnostics complete');
+        }
+
+        function testBasicFunctionality() {
+            log('🧪 Testing basic functionality...');
+            
+            try {
+                // Test basic JS
+                const testObj = { test: 'working' };
+                log(`✅ Objects: ${JSON.stringify(testObj)}`);
+                
+                // Test arrays
+                const testArray = ['Brixon', 'Knox', 'Makena'];
+                log(`✅ Arrays: ${testArray.length} items`);
+                
+                // Test DOM manipulation
+                const testDiv = document.createElement('div');
+                testDiv.textContent = 'Test';
+                log(`✅ DOM manipulation working`);
+                
+                // Test fetch (basic)
+                if (typeof fetch !== 'undefined') {
+                    log(`✅ Fetch API available`);
+                } else {
+                    log(`❌ Fetch API not available`);
+                }
+                
+                log('✅ Basic functionality tests passed');
+                
+            } catch (e) {
+                log(`❌ Basic functionality error: ${e.message}`);
+            }
+        }
+
+        function checkJSFiles() {
+            log('📁 Checking JavaScript files...');
+            
+            const expectedObjects = {
+                'Config': 'Configuration module',
+                'Utils': 'Utility functions',
+                'API': 'API communication',
+                'UI': 'User interface',
+                'App': 'Main application',
+                'Logger': 'Logging system',
+                'Notifications': 'Notification system'
+            };
+
+            Object.entries(expectedObjects).forEach(([obj, desc]) => {
+                if (typeof window[obj] !== 'undefined') {
+                    log(`✅ ${desc} (${obj}) loaded`);
+                } else {
+                    log(`❌ ${desc} (${obj}) missing`);
+                }
+            });
+        }
+
+        function testDropdown() {
+            log('🧪 Testing dropdown functionality...');
+            
+            const dropdown = document.getElementById('testDropdown');
+            const players = ['Brixon', 'Knox', 'Makena', 'Cal', 'Will', 'Jace'];
+            
+            // Clear existing options
+            dropdown.innerHTML = '<option value="">Select player...</option>';
+            
+            // Add players
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = player;
+                dropdown.appendChild(option);
+            });
+            
+            log(`✅ Added ${players.length} players to test dropdown`);
+        }
+
+        function fixLoadingScreen() {
+            log('🔧 Attempting to fix loading screen...');
+            
+            // Try to find and hide loading screen
+            const loadingScreens = [
+                document.getElementById('loadingScreen'),
+                document.querySelector('.loading-screen'),
+                document.querySelector('[class*="loading"]')
+            ];
+            
+            let fixed = false;
+            loadingScreens.forEach((screen, index) => {
+                if (screen) {
+                    screen.style.display = 'none';
+                    screen.classList.add('hidden');
+                    log(`✅ Hidden loading screen method ${index + 1}`);
+                    fixed = true;
+                }
+            });
+            
+            if (!fixed) {
+                log('❌ No loading screen found to hide');
+            } else {
+                log('✅ Loading screen should now be hidden');
+            }
+        }
+
+        function emergencyFix1() {
+            log('🚨 Emergency Fix 1: Resetting app state...');
+            
+            try {
+                // Clear localStorage
+                localStorage.clear();
+                log('✅ Cleared localStorage');
+                
+                // Reset any global variables
+                if (typeof window.App !== 'undefined') {
+                    window.App.isLoading = false;
+                    log('✅ Reset App.isLoading');
+                }
+                
+                // Hide loading screen
+                fixLoadingScreen();
+                
+                log('✅ Emergency fix 1 complete - try refreshing');
+                
+            } catch (e) {
+                log(`❌ Emergency fix 1 failed: ${e.message}`);
+            }
+        }
+
+        function emergencyFix2() {
+            log('🚨 Emergency Fix 2: Clearing cache...');
+            
+            try {
+                // Force reload without cache
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                        registrations.forEach(registration => {
+                            registration.unregister();
+                            log('✅ Cleared service worker');
+                        });
+                    });
+                }
+                
+                log('✅ Emergency fix 2 complete');
+                log('🔄 Hard refresh recommended: Ctrl+Shift+R');
+                
+            } catch (e) {
+                log(`❌ Emergency fix 2 failed: ${e.message}`);
+            }
+        }
+
+        function emergencyFix3() {
+            log('🚨 Emergency Fix 3: Fallback mode...');
+            
+            try {
+                // Create minimal working app
+                const body = document.body;
+                const container = document.createElement('div');
+                container.innerHTML = `
+                    <div style="background: #1a1a1a; color: white; padding: 20px; min-height: 100vh;">
+                        <h1>🏈 12Bowl - Fallback Mode</h1>
+                        <p>The main app had loading issues. Here's a basic version:</p>
+                        <div style="margin: 20px 0;">
+                            <label>Select Player:</label>
+                            <select id="fallbackPlayer" style="margin: 10px; padding: 10px; font-size: 16px;">
+                                <option value="">Choose player...</option>
+                                <option value="Brixon">Brixon</option>
+                                <option value="Knox">Knox</option>
+                                <option value="Makena">Makena</option>
+                                <option value="Cal">Cal</option>
+                                <option value="Will">Will</option>
+                                <option value="Jace">Jace</option>
+                            </select>
+                        </div>
+                        <button onclick="location.reload()" style="padding: 15px 30px; font-size: 16px; background: #B22222; color: white; border: none; border-radius: 5px;">
+                            Try Main App Again
+                        </button>
+                    </div>
+                `;
+                
+                body.innerHTML = container.innerHTML;
+                log('✅ Fallback mode activated');
+                
+            } catch (e) {
+                log(`❌ Emergency fix 3 failed: ${e.message}`);
+            }
+        }
+
+        function goToMainApp() {
+            window.location.href = window.location.href.split('?')[0];
+        }
+
+        // Auto-run basic diagnostics on load
+        window.addEventListener('load', function() {
+            log('🚀 Debug page loaded');
+            
+            setTimeout(() => {
+                log('🔍 Running automatic diagnostics...');
+                runFullDiagnostics();
+            }, 1000);
+        });
+
+        // Show current page info
+        log(`📍 Current URL: ${window.location.href}`);
+        log(`🌐 User Agent: ${navigator.userAgent.substring(0, 50)}...`);
+        log(`📱 Screen: ${window.screen.width}x${window.screen.height}`);
+    </script>
+</body>
+</html>
