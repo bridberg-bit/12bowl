@@ -939,7 +939,7 @@ window.adminControls = {
     }
     
     const scores = {};
-    const players = ['Kid1', 'Kid2', 'Kid3', 'Kid4', 'Kid5', 'Kid6'];
+    const players = App.players.length > 0 ? App.players : Config.APP.PLAYERS;
     
     players.forEach(player => {
       const playerKey = `${player}_week${targetWeek}`;
