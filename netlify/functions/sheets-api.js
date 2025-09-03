@@ -1,49 +1,17 @@
-async function getPlayers(sheets, sheetId, data) {
-    try {
-        log('Getting player names from Standings sheet');
-
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: sheetId,
-            range: 'Standings!A:A', // Just the player names column
-        });
-
-        const rows = response.data.values || [];
-        log(`Raw sheet data received: ${JSON.stringify(rows)}`);
-        
-        // Skip header and extract player names
-        const players = rows
-            .slice(1) // Skip header row
-            .filter(row => row && row[0] && row[0].trim()) // Only non-empty rows
-            .map(row => {
-                let playerName = row[0].trim();
-                log(`Processing player name: "${playerName}"`);
-                return playerName;
-            });
-
-        log(`Processed ${players.length} players: ${players.join(', ')}`);
-
-        // If we got a concatenated string, try to split it
-        if (players.length === 1 && players[0].length > 20) {
-            log(`Detected concatenated string: ${const { google } = require('googleapis');
-
-// Helper function for logging
-function log(message, data = null) {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] ${message}`, data || '');
-}
+const { google } = require('googleapis');
 
 exports.handler = async (event, context) => {
+    console.log('Function called with method:', event.httpMethod);
+    
     // CORS headers
     const headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Max-Age': '86400'
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
     };
 
     // Handle preflight requests
     if (event.httpMethod === 'OPTIONS') {
-        log('Handling CORS preflight request');
         return {
             statusCode: 200,
             headers,
@@ -51,171 +19,90 @@ exports.handler = async (event, context) => {
         };
     }
 
-    log(`Incoming request: ${event.httpMethod} from ${event.headers.origin || 'unknown'}`);
-
     try {
-        // Validate environment variables
+        // Get environment variables
         const SHEET_ID = process.env.SHEET_ID;
         const SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
         const PRIVATE_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-        log('Environment check:', {
+        console.log('Environment check:', {
             hasSheetId: !!SHEET_ID,
             hasEmail: !!SERVICE_ACCOUNT_EMAIL,
-            hasKey: !!PRIVATE_KEY && PRIVATE_KEY.length > 100,
-            sheetIdLength: SHEET_ID ? SHEET_ID.length : 0,
-            method: event.httpMethod
+            hasKey: !!PRIVATE_KEY
         });
 
         if (!SHEET_ID || !SERVICE_ACCOUNT_EMAIL || !PRIVATE_KEY) {
-            const missing = [];
-            if (!SHEET_ID) missing.push('SHEET_ID');
-            if (!SERVICE_ACCOUNT_EMAIL) missing.push('GOOGLE_SERVICE_ACCOUNT_EMAIL');
-            if (!PRIVATE_KEY) missing.push('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY');
-            
-            log('Missing environment variables:', missing);
-            
             return {
                 statusCode: 500,
                 headers,
                 body: JSON.stringify({ 
-                    error: 'Server configuration error',
-                    message: 'Missing required environment variables',
-                    missing: missing,
-                    debug: {
-                        hasSheetId: !!SHEET_ID,
-                        hasEmail: !!SERVICE_ACCOUNT_EMAIL,
-                        hasKey: !!PRIVATE_KEY
-                    }
+                    error: 'Missing environment variables',
+                    details: 'Please check SHEET_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL, and GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY'
                 })
             };
         }
 
-        // Parse the request body
+        // Parse request
         let requestData = {};
         if (event.body) {
             try {
                 requestData = JSON.parse(event.body);
-                log('Request data parsed:', { action: requestData.action, hasData: !!requestData.data });
-            } catch (parseError) {
-                log('JSON parse error:', parseError.message);
+            } catch (e) {
                 return {
                     statusCode: 400,
                     headers,
-                    body: JSON.stringify({ 
-                        error: 'Invalid JSON in request body',
-                        message: parseError.message 
-                    })
+                    body: JSON.stringify({ error: 'Invalid JSON' })
                 };
             }
         }
 
         const { action, data } = requestData;
+        console.log('Processing action:', action);
 
-        // Validate action parameter
         if (!action) {
-            log('Missing action parameter');
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ 
-                    error: 'Missing action parameter',
-                    availableActions: ['getCurrentWeek', 'savePick', 'getGames', 'getPicks', 'getStandings']
-                })
+                body: JSON.stringify({ error: 'Missing action parameter' })
             };
         }
 
-        log(`Processing action: ${action}`);
+        // Setup Google Sheets
+        const auth = new google.auth.JWT(
+            SERVICE_ACCOUNT_EMAIL,
+            null,
+            PRIVATE_KEY,
+            ['https://www.googleapis.com/auth/spreadsheets']
+        );
 
-        // Initialize Google Sheets API
-        let sheets;
-        try {
-            const auth = new google.auth.JWT(
-                SERVICE_ACCOUNT_EMAIL,
-                null,
-                PRIVATE_KEY,
-                ['https://www.googleapis.com/auth/spreadsheets']
-            );
+        const sheets = google.sheets({ version: 'v4', auth });
 
-            // Test authentication
-            await auth.authorize();
-            log('Google API authentication successful');
-
-            sheets = google.sheets({ version: 'v4', auth });
-        } catch (authError) {
-            log('Google API authentication failed:', authError.message);
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({
-                    error: 'Authentication failed',
-                    message: 'Unable to authenticate with Google Sheets API',
-                    details: authError.message
-                })
-            };
-        }
-
-        // Route to appropriate handler
+        // Route actions
         let result;
         switch (action) {
             case 'getCurrentWeek':
                 result = await getCurrentWeek(sheets, SHEET_ID);
                 break;
-            
+                
+            case 'getPlayers':
+                result = await getPlayers(sheets, SHEET_ID);
+                break;
+                
             case 'savePick':
-                if (!data) {
-                    return {
-                        statusCode: 400,
-                        headers,
-                        body: JSON.stringify({ error: 'Missing data for savePick' })
-                    };
-                }
                 result = await savePick(sheets, SHEET_ID, data);
                 break;
-            
+                
             case 'getGames':
-                if (!data || !data.week) {
-                    return {
-                        statusCode: 400,
-                        headers,
-                        body: JSON.stringify({ error: 'Missing week parameter for getGames' })
-                    };
-                }
                 result = await getGames(sheets, SHEET_ID, data);
                 break;
-
-            case 'getPicks':
-                if (!data || !data.player || !data.week) {
-                    return {
-                        statusCode: 400,
-                        headers,
-                        body: JSON.stringify({ error: 'Missing player or week parameter for getPicks' })
-                    };
-                }
-                result = await getPicks(sheets, SHEET_ID, data);
-                break;
-
-            case 'getStandings':
-                result = await getStandings(sheets, SHEET_ID, data);
-                break;
-
-            case 'getPlayers':
-                result = await getPlayers(sheets, SHEET_ID, data);
-                break;
-
+                
             default:
-                log(`Unknown action: ${action}`);
                 return {
                     statusCode: 400,
                     headers,
-                    body: JSON.stringify({ 
-                        error: `Unknown action: ${action}`,
-                        availableActions: ['getCurrentWeek', 'savePick', 'getGames', 'getPicks', 'getStandings', 'getPlayers']
-                    })
+                    body: JSON.stringify({ error: `Unknown action: ${action}` })
                 };
         }
-
-        log(`Action ${action} completed successfully`);
 
         return {
             statusCode: 200,
@@ -224,381 +111,247 @@ exports.handler = async (event, context) => {
         };
 
     } catch (error) {
-        log('Function error:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack?.split('\n')[0],
-            code: error.code
-        });
-
+        console.error('Function error:', error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
                 error: 'Internal server error',
-                message: error.message,
-                type: error.name,
-                timestamp: new Date().toISOString()
+                message: error.message
             })
         };
     }
 };
 
+// Get current week
 async function getCurrentWeek(sheets, sheetId) {
     try {
-        log('Getting current week from sheet:', sheetId);
-        
+        console.log('Getting current week');
+        return { currentWeek: 1, success: true };
+    } catch (error) {
+        console.error('getCurrentWeek error:', error);
+        return { currentWeek: 1, success: false, error: error.message };
+    }
+}
+
+// Get players from Standings sheet
+async function getPlayers(sheets, sheetId) {
+    try {
+        console.log('Getting players from Standings sheet');
+
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: sheetId,
-            range: 'Settings!A:B',
+            range: 'Standings!A:A'
         });
 
         const rows = response.data.values || [];
-        log(`Found ${rows.length} rows in Settings sheet`);
+        console.log('Raw sheet data:', rows);
+        
+        // Skip header and get player names
+        const players = rows
+            .slice(1) // Skip header row
+            .filter(row => row && row[0] && row[0].trim())
+            .map(row => row[0].trim());
 
-        const weekRow = rows.find(row => row[0] === 'Current_Week');
-        const currentWeek = weekRow ? parseInt(weekRow[1]) : 1;
+        console.log('Processed players:', players);
 
-        log(`Current week determined: ${currentWeek}`);
+        // If no players found, return defaults
+        if (players.length === 0) {
+            console.log('No players found, using defaults');
+            return { 
+                players: ['Brixon', 'Knox', 'Makena', 'Cal', 'Will', 'Jace'],
+                success: false,
+                fallback: true
+            };
+        }
 
-        return { currentWeek, success: true };
+        return { 
+            players: players,
+            success: true
+        };
 
     } catch (error) {
-        log('getCurrentWeek error:', error.message);
-        
-        // Return a default week if sheet access fails
+        console.error('getPlayers error:', error);
         return { 
-            currentWeek: 1, 
-            success: false, 
+            players: ['Brixon', 'Knox', 'Makena', 'Cal', 'Will', 'Jace'],
+            success: false,
             error: error.message,
             fallback: true
         };
     }
 }
 
+// Save pick to Picks sheet
 async function savePick(sheets, sheetId, data) {
     try {
-        log('Saving pick:', data);
+        console.log('Saving pick:', data);
 
         const { player, week, gameId, teamPick, tiebreaker } = data;
         
-        // Validate required fields
-        const requiredFields = ['player', 'week', 'gameId', 'teamPick'];
-        const missingFields = requiredFields.filter(field => !data[field]);
-        
-        if (missingFields.length > 0) {
-            log('Missing required fields:', missingFields);
+        if (!player || !week || !gameId || !teamPick) {
             return {
                 success: false,
-                error: 'Missing required fields',
-                missing: missingFields
+                error: 'Missing required fields: player, week, gameId, teamPick'
             };
         }
 
-        // Prepare the row data
-        const timestamp = new Date().toISOString();
-        const values = [[
-            String(player),
-            String(week),
-            String(gameId),
-            String(teamPick),
-            String(tiebreaker || ''),
-            timestamp
-        ]];
-
-        log('Appending to Picks sheet with values:', values[0]);
-
-        // First, try to create the sheet structure if it doesn't exist
+        // Try to get existing picks first
+        const playerWeekKey = `${player}_Week${week}`;
+        
         try {
-            await ensureSheetStructure(sheets, sheetId);
-        } catch (structureError) {
-            log('Sheet structure check failed (continuing anyway):', structureError.message);
-        }
-
-        // Append to Google Sheets
-        const result = await sheets.spreadsheets.values.append({
-            spreadsheetId: sheetId,
-            range: 'Picks!A:F',
-            valueInputOption: 'RAW',
-            insertDataOption: 'INSERT_ROWS',
-            requestBody: {
-                values: values
-            }
-        });
-
-        log('Pick saved successfully:', {
-            updatedRange: result.data.updates?.updatedRange,
-            updatedRows: result.data.updates?.updatedRows
-        });
-        
-        return { 
-            success: true,
-            updatedRange: result.data.updates?.updatedRange,
-            timestamp: timestamp
-        };
-
-    } catch (error) {
-        log('savePick error:', {
-            message: error.message,
-            code: error.code,
-            status: error.status
-        });
-        
-        return {
-            success: false,
-            error: `Failed to save pick: ${error.message}`,
-            code: error.code,
-            retryable: error.code !== 404 // Can retry unless sheet not found
-        };
-    }
-}
-
-async function getGames(sheets, sheetId, data) {
-    try {
-        const { week } = data;
-        log(`Getting games for week: ${week}`);
-
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: sheetId,
-            range: 'Games!A:I', // Expanded to include more columns
-        });
-
-        const rows = response.data.values || [];
-        log(`Found ${rows.length} rows in Games sheet`);
-        
-        if (rows.length === 0) {
-            log('No data found in Games sheet');
-            return { games: [], success: true };
-        }
-
-        const headerRow = rows[0];
-        const dataRows = rows.slice(1);
-        
-        log('Games sheet headers:', headerRow);
-
-        // Filter games for the requested week and transform data
-        const weekGames = dataRows
-            .filter(row => row.length > 0 && parseInt(row[0]) === parseInt(week))
-            .map((row, index) => {
-                const game = {
-                    id: `${week}_${index + 1}`, // Generate consistent ID
-                    week: parseInt(row[0]) || week,
-                    day: row[1] || '',
-                    time: row[2] || '',
-                    awayTeam: row[3] || '',
-                    homeTeam: row[4] || '',
-                    overUnder: parseFloat(row[5]) || 0,
-                    completed: (row[6] || '').toString().toLowerCase() === 'true',
-                    winner: row[7] || null,
-                    awayScore: row[8] ? parseInt(row[8]) : null,
-                    homeScore: row[9] ? parseInt(row[9]) : null
-                };
-                
-                // Determine if it's Monday Night Football
-                game.isMNF = game.day.toLowerCase().includes('monday');
-                
-                return game;
+            const response = await sheets.spreadsheets.values.get({
+                spreadsheetId: sheetId,
+                range: 'Picks!A:Z'
             });
 
-        log(`Returning ${weekGames.length} games for week ${week}`);
+            const rows = response.data.values || [];
+            let existingRowIndex = -1;
+            let existingRow = null;
 
-        return { 
-            games: weekGames, 
-            success: true,
-            week: parseInt(week),
-            count: weekGames.length
-        };
-
-    } catch (error) {
-        log('getGames error:', error.message);
-        return { 
-            games: [], 
-            success: false, 
-            error: error.message,
-            week: parseInt(data.week)
-        };
-    }
-}
-
-async function getPicks(sheets, sheetId, data) {
-    try {
-        const { player, week } = data;
-        log(`Getting consolidated picks for player: ${player}, week: ${week}`);
-
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: sheetId,
-            range: 'Picks!A:Z',
-        });
-
-        const rows = response.data.values || [];
-        
-        // Look for the consolidated row for this player/week
-        const playerWeekKey = `${player}_Week${week}`;
-        const playerRow = rows.find(row => row[0] === playerWeekKey);
-        
-        if (!playerRow) {
-            log(`No picks found for ${playerWeekKey}`);
-            return { 
-                picks: [], 
-                success: true,
-                player: player,
-                week: parseInt(week),
-                consolidated: true
-            };
-        }
-
-        // Parse the consolidated row into individual picks
-        const picks = [];
-        
-        // Games are stored in columns C onwards (index 2+)
-        for (let gameIndex = 1; gameIndex <= 20; gameIndex++) {
-            const columnIndex = 2 + gameIndex - 1; // Game1 is in column C (index 2)
-            const teamPick = playerRow[columnIndex];
-            
-            if (teamPick && teamPick.trim()) {
-                picks.push({
-                    player: player,
-                    week: parseInt(week),
-                    gameId: gameIndex.toString(),
-                    teamPick: teamPick.trim(),
-                    tiebreaker: null // Will be set below
-                });
-            }
-        }
-
-        // Get tiebreaker from column Y (index 24)
-        const tiebreaker = playerRow[24] ? parseInt(playerRow[24]) : null;
-        
-        // Add tiebreaker to all picks (or create a separate tiebreaker entry)
-        if (picks.length > 0 && tiebreaker) {
-            picks.forEach(pick => pick.tiebreaker = tiebreaker);
-        }
-
-        // Get timestamp from column Z (index 25)  
-        const lastUpdated = playerRow[25] || null;
-
-        log(`Found ${picks.length} consolidated picks with tiebreaker: ${tiebreaker}`);
-
-        return { 
-            picks: picks, 
-            success: true,
-            player: player,
-            week: parseInt(week),
-            tiebreaker: tiebreaker,
-            lastUpdated: lastUpdated,
-            consolidated: true
-        };
-
-    } catch (error) {
-        log('getPicks error:', error.message);
-        return { 
-            picks: [], 
-            success: false, 
-            error: error.message,
-            player: data.player,
-            week: parseInt(data.week)
-        };
-    }
-}
-
-async function getStandings(sheets, sheetId, data) {
-    try {
-        log('Getting standings data');
-
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: sheetId,
-            range: 'Standings!A:C',
-        });
-
-        const rows = response.data.values || [];
-        
-        const standings = rows
-            .slice(1) // Skip header
-            .map(row => ({
-                player: row[0],
-                wins: parseInt(row[1]) || 0,
-                totalGames: parseInt(row[2]) || 0,
-                percentage: row[2] ? (parseInt(row[1]) / parseInt(row[2])).toFixed(3) : '0.000'
-            }))
-            .sort((a, b) => b.wins - a.wins); // Sort by wins descending
-
-        log(`Returning standings for ${standings.length} players`);
-
-        return { 
-            standings: standings, 
-            success: true,
-            lastUpdated: new Date().toISOString()
-        };
-
-    } catch (error) {
-        log('getStandings error:', error.message);
-        return { 
-            standings: [], 
-            success: false, 
-            error: error.message 
-        };
-    }
-}
-
-async function ensureSheetStructure(sheets, sheetId) {
-    try {
-        // Check if required sheets exist and create headers if needed
-        const spreadsheet = await sheets.spreadsheets.get({
-            spreadsheetId: sheetId
-        });
-
-        const sheetNames = spreadsheet.data.sheets.map(sheet => sheet.properties.title);
-        log('Existing sheets:', sheetNames);
-
-        // Ensure Picks sheet has proper headers
-        if (sheetNames.includes('Picks')) {
-            try {
-                const picksResponse = await sheets.spreadsheets.values.get({
-                    spreadsheetId: sheetId,
-                    range: 'Picks!A1:F1',
-                });
-
-                if (!picksResponse.data.values || picksResponse.data.values.length === 0) {
-                    // Add headers to Picks sheet
-                    await sheets.spreadsheets.values.update({
-                        spreadsheetId: sheetId,
-                        range: 'Picks!A1:F1',
-                        valueInputOption: 'RAW',
-                        requestBody: {
-                            values: [['Player', 'Week', 'GameID', 'Pick', 'Tiebreaker', 'Timestamp']]
-                        }
-                    });
-                    log('Added headers to Picks sheet');
+            // Find existing row for this player/week
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i][0] === playerWeekKey) {
+                    existingRowIndex = i;
+                    existingRow = [...rows[i]];
+                    break;
                 }
-            } catch (headerError) {
-                log('Could not check/add Picks headers:', headerError.message);
+            }
+
+            let rowData;
+            const timestamp = new Date().toISOString();
+
+            if (existingRow) {
+                // Update existing row
+                console.log('Updating existing row');
+                rowData = existingRow;
+                
+                // Ensure row has enough columns
+                while (rowData.length < 26) {
+                    rowData.push('');
+                }
+                
+                // Update specific game pick (games start at column C, index 2)
+                const gameIndex = parseInt(gameId);
+                const gameColumn = 2 + gameIndex - 1; // Game1 = index 2, Game2 = index 3, etc.
+                
+                if (gameColumn < 26) {
+                    rowData[gameColumn] = teamPick;
+                }
+                
+                // Update tiebreaker and timestamp
+                if (tiebreaker) {
+                    rowData[24] = tiebreaker.toString(); // Column Y
+                }
+                rowData[25] = timestamp; // Column Z
+
+                const updateRange = `Picks!A${existingRowIndex + 1}:Z${existingRowIndex + 1}`;
+                await sheets.spreadsheets.values.update({
+                    spreadsheetId: sheetId,
+                    range: updateRange,
+                    valueInputOption: 'RAW',
+                    requestBody: {
+                        values: [rowData]
+                    }
+                });
+
+                console.log('Updated existing row');
+
+            } else {
+                // Create new row
+                console.log('Creating new row');
+                rowData = [playerWeekKey, player]; // Columns A, B
+                
+                // Add empty game columns (C-V = indices 2-21)
+                for (let i = 0; i < 20; i++) {
+                    rowData.push('');
+                }
+                
+                // Set specific game pick
+                const gameIndex = parseInt(gameId);
+                const gameColumn = 2 + gameIndex - 1;
+                
+                if (gameColumn < 22) {
+                    rowData[gameColumn] = teamPick;
+                }
+                
+                // Add reserved columns, tiebreaker, timestamp
+                rowData.push(''); // W - Reserved1
+                rowData.push(''); // X - Reserved2
+                rowData.push(tiebreaker ? tiebreaker.toString() : ''); // Y - Tiebreaker
+                rowData.push(timestamp); // Z - LastUpdated
+
+                await sheets.spreadsheets.values.append({
+                    spreadsheetId: sheetId,
+                    range: 'Picks!A:Z',
+                    valueInputOption: 'RAW',
+                    requestBody: {
+                        values: [rowData]
+                    }
+                });
+
+                console.log('Created new row');
+            }
+
+            return { 
+                success: true,
+                method: existingRow ? 'updated' : 'created',
+                timestamp: timestamp
+            };
+
+        } catch (sheetError) {
+            console.error('Sheet access error:', sheetError);
+            
+            // Try to create basic structure and retry
+            try {
+                await sheets.spreadsheets.values.update({
+                    spreadsheetId: sheetId,
+                    range: 'Picks!A1:Z1',
+                    valueInputOption: 'RAW',
+                    requestBody: {
+                        values: [['PlayerWeek', 'Player', 'Game1', 'Game2', 'Game3', 'Game4', 'Game5', 
+                                'Game6', 'Game7', 'Game8', 'Game9', 'Game10', 'Game11', 'Game12',
+                                'Game13', 'Game14', 'Game15', 'Game16', 'Game17', 'Game18', 'Game19', 'Game20',
+                                'Reserved1', 'Reserved2', 'Tiebreaker', 'LastUpdated']]
+                    }
+                });
+                console.log('Created sheet headers');
+                
+                // Retry save
+                return await savePick(sheets, sheetId, data);
+                
+            } catch (retryError) {
+                console.error('Retry failed:', retryError);
+                throw retryError;
             }
         }
 
-        return true;
     } catch (error) {
-        log('ensureSheetStructure error:', error.message);
-        throw error;
+        console.error('savePick error:', error);
+        return {
+            success: false,
+            error: error.message
+        };
     }
 }
 
-// Health check endpoint
-exports.healthCheck = async (event, context) => {
-    return {
-        statusCode: 200,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            version: '1.1',
-            environment: {
-                hasSheetId: !!process.env.SHEET_ID,
-                hasServiceAccount: !!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-                hasPrivateKey: !!process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-            }
-        })
-    };
-};
+// Get games (placeholder)
+async function getGames(sheets, sheetId, data) {
+    try {
+        console.log('Getting games for week:', data.week);
+        
+        // Return empty for now - you can enhance this later
+        return { 
+            games: [],
+            success: true,
+            week: data.week
+        };
+        
+    } catch (error) {
+        console.error('getGames error:', error);
+        return { 
+            games: [],
+            success: false,
+            error: error.message
+        };
+    }
+}
