@@ -754,20 +754,39 @@
             }
         }
         
-        // Save to Backend (Placeholder)
-        async function saveToBackend() {
-            // This would send picks to your Google Sheets
-            // For now, just simulate the API call
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    if (isOnlineMode) {
-                        resolve();
-                    } else {
-                        reject(new Error('Offline'));
-                    }
-                }, 1000);
-            });
-        }
+   <script>
+// Save to Backend (Real)
+async function saveToBackend() {
+  const playerKey = `${currentPlayer}_week${currentWeek}`;
+  const entry = picks[playerKey];
+  if (!entry) throw new Error('No picks to save');
+
+  const tb = entry.tiebreaker ?? null;
+
+  const saves = Object.entries(entry.games).map(([gid, team]) =>
+    fetch('/.netlify/functions/sheets-api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'savePick',
+        data: { player: currentPlayer, week: currentWeek, gameId: Number(gid), teamPick: team, tiebreaker: tb }
+      })
+    })
+    .then(async (r) => {
+      const j = await r.json().catch(() => ({}));
+      // Your function returns { success: true, ... } on success
+      if (!r.ok || j.success !== true) {
+        const msg = j && (j.error || j.message || JSON.stringify(j));
+        throw new Error(msg || 'Save failed');
+      }
+      return j;
+    })
+  );
+
+  await Promise.all(saves);
+}
+</script>
+
         
         // Show Notification
         function showNotification(message, type = 'success') {
