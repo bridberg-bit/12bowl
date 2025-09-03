@@ -3,213 +3,802 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$12 Bowl - Where Legends Are Made</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <meta name="description" content="NFL Pick'em game for the 12Bowl League - Make your weekly picks and compete for glory!">
-    <meta name="theme-color" content="#B22222">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏈</text></svg>">
+    <title>$12 Bowl - NFL Pick'em</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(178, 34, 34, 0.2), rgba(178, 34, 34, 0.1));
+            border: 2px solid #B22222;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            color: #B22222;
+            text-shadow: 0 0 20px rgba(178, 34, 34, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+        
+        /* Status */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.offline {
+            background: #dc3545;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Controls */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        
+        .player-select {
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: 2px solid #B22222;
+            border-radius: 10px;
+            min-width: 250px;
+            font-weight: 600;
+        }
+        
+        .player-select:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(178, 34, 34, 0.5);
+        }
+        
+        .week-selector {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+        
+        .week-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+        
+        .week-btn:hover, .week-btn.active {
+            background: #B22222;
+            border-color: #B22222;
+            transform: translateY(-2px);
+        }
+        
+        /* Games */
+        .games-container {
+            margin-bottom: 30px;
+        }
+        
+        .week-header {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #B22222;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(178, 34, 34, 0.1);
+            border-radius: 10px;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-info {
+            flex: 1;
+        }
+        
+        .matchup {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .game-time {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        .pick-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .team-btn {
+            background: rgba(178, 34, 34, 0.3);
+            border: 2px solid #B22222;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+        
+        .team-btn:hover {
+            background: rgba(178, 34, 34, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .team-btn.selected {
+            background: #B22222;
+            box-shadow: 0 0 15px rgba(178, 34, 34, 0.6);
+            transform: scale(1.05);
+        }
+        
+        /* Tiebreaker */
+        .tiebreaker {
+            background: linear-gradient(135deg, rgba(178, 34, 34, 0.2), rgba(178, 34, 34, 0.1));
+            border: 2px solid #B22222;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .tiebreaker h3 {
+            color: #B22222;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .tiebreaker input {
+            padding: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+            width: 120px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .tiebreaker input:focus {
+            outline: none;
+            border-color: #B22222;
+            box-shadow: 0 0 15px rgba(178, 34, 34, 0.4);
+        }
+        
+        /* Save Button */
+        .save-btn {
+            background: linear-gradient(135deg, #B22222, #dc3545);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(178, 34, 34, 0.4);
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(178, 34, 34, 0.6);
+        }
+        
+        .save-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .save-btn.saving {
+            background: #6c757d;
+        }
+        
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.warning {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .game-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .pick-buttons {
+                justify-content: center;
+                width: 100%;
+            }
+            
+            .team-btn {
+                flex: 1;
+                max-width: 120px;
+            }
+            
+            .week-selector {
+                justify-content: center;
+            }
+            
+            .status-bar {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+        
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #ccc;
+        }
+        
+        .error-state {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid #dc3545;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="loading-screen">
-        <div class="loading-content">
-            <div class="loading-logo">🏈</div>
-            <div class="loading-text">Loading 12Bowl...</div>
-            <div class="loading-spinner"></div>
-        </div>
-    </div>
-
     <div class="container">
-        <!-- Enhanced Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <h1 class="main-title">
-                        <span class="title-icon">🏈</span>
-                        <span class="title-text">$12 Bowl</span>
-                        <span class="title-icon">🏈</span>
-                    </h1>
-                    <p class="subtitle">Where Legends Are Made</p>
-                </div>
-                
-                <div class="status-section">
-                    <div class="connection-status" id="connectionStatus">
-                        <div class="status-indicator"></div>
-                        <span class="status-text">Connecting...</span>
-                    </div>
-                    <div class="current-week-display" id="currentWeekDisplay">
-                        Week <span id="currentWeekNumber">1</span>
-                    </div>
-                </div>
-            </div>
-        </header>
-        
-        <!-- Enhanced Controls Section -->
-        <section class="controls-section">
-            <div class="controls-grid">
-                <!-- Player Selection -->
-                <div class="player-selector-container">
-                    <label for="playerSelect" class="selector-label">Choose Your Player</label>
-                    <div class="custom-select">
-                        <select id="playerSelect" class="player-select">
-                            <option value="" disabled selected>Select Your Name</option>
-                            <!-- Player options will be loaded dynamically from Google Sheets -->
-                        </select>
-                        <div class="select-arrow">
-                            <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-                                <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Week Navigation -->
-                <div class="week-navigation">
-                    <button class="week-nav-btn prev" id="prevWeek" aria-label="Previous Week">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    
-                    <div class="week-selector" id="weekSelector">
-                        <!-- Week buttons will be generated dynamically -->
-                    </div>
-                    
-                    <button class="week-nav-btn next" id="nextWeek" aria-label="Next Week">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Save Status Banner -->
-        <div id="saveStatusBanner" class="save-status-banner hidden">
-            <div class="banner-content">
-                <div class="banner-icon">💾</div>
-                <div class="banner-text">
-                    <div class="banner-title">Picks Saved Successfully!</div>
-                    <div class="banner-subtitle">Your selections have been secured for this week</div>
-                </div>
-                <button class="banner-close" onclick="hideSaveStatusBanner()">×</button>
-            </div>
-        </div>
-
-        <!-- Games Container -->
-        <main class="games-section">
-            <div id="gamesContainer" class="games-container">
-                <div class="loading-games">
-                    <div class="loading-spinner-small"></div>
-                    <span>Loading NFL games for this week...</span>
-                </div>
-            </div>
-        </main>
-        
-        <!-- Enhanced Tiebreaker Section -->
-        <section id="tiebreakerSection" class="tiebreaker-section hidden">
-            <div class="tiebreaker-content">
-                <div class="tiebreaker-header">
-                    <div class="tiebreaker-icon">🔥</div>
-                    <h3 class="tiebreaker-title">Monday Night Football Tiebreaker</h3>
-                </div>
-                <p class="tiebreaker-description">
-                    Enter your prediction for the total points scored in the Monday Night Football game
-                </p>
-                <div class="tiebreaker-input-group">
-                    <label for="tiebreakerInput" class="tiebreaker-label">Total Points</label>
-                    <input type="number" 
-                           id="tiebreakerInput" 
-                           class="tiebreaker-input"
-                           placeholder="45" 
-                           min="0" 
-                           max="150"
-                           autocomplete="off">
-                    <div class="input-suffix">pts</div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Enhanced Save Button -->
-        <div class="save-section">
-            <button class="save-btn" id="saveBtn" onclick="savePicks(true)" disabled>
-                <div class="btn-content">
-                    <div class="btn-icon">💾</div>
-                    <div class="btn-text">
-                        <div class="btn-title">Save My Picks</div>
-                        <div class="btn-subtitle">Secure your selections</div>
-                    </div>
-                </div>
-                <div class="btn-spinner hidden"></div>
-            </button>
+        <!-- Header -->
+        <div class="header">
+            <h1>🏈 $12 Bowl 🏈</h1>
+            <p>Where Legends Are Made</p>
         </div>
         
-        <!-- Enhanced Standings -->
-        <section class="standings-section">
-            <div class="standings-header">
-                <h2 class="standings-title">
-                    <span class="standings-icon">🏆</span>
-                    League Standings
-                    <span class="standings-icon">🏆</span>
-                </h2>
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Local Mode</span>
+            </div>
+            <div class="current-week">
+                <strong>Current Week: <span id="currentWeekDisplay">1</span></strong>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <div class="player-section">
+                <select id="playerSelect" class="player-select">
+                    <option value="">Select Your Name</option>
+                    <option value="Brixon">Brixon</option>
+                    <option value="Knox">Knox</option>
+                    <option value="Makena">Makena</option>
+                    <option value="Cal">Cal</option>
+                    <option value="Will">Will</option>
+                    <option value="Jace">Jace</option>
+                </select>
             </div>
             
-            <div class="standings-grid">
-                <div class="standings-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Weekly Champions</h3>
-                        <div class="card-badge">🥇</div>
+            <div class="week-selector" id="weekSelector">
+                <!-- Week buttons generated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Games Container -->
+        <div id="gamesContainer" class="games-container">
+            <div class="loading">Loading games for Week 1...</div>
+        </div>
+        
+        <!-- Tiebreaker -->
+        <div class="tiebreaker" id="tiebreakerSection">
+            <h3>🔥 Monday Night Football Tiebreaker</h3>
+            <p>Total points in the Monday Night game:</p>
+            <input type="number" id="tiebreakerInput" placeholder="45" min="0" max="150">
+        </div>
+        
+        <!-- Save Button -->
+        <button class="save-btn" id="saveBtn" onclick="savePicks()">
+            💾 Save My Picks
+        </button>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Simple App State
+        let currentWeek = 1;
+        let currentPlayer = '';
+        let picks = {};
+        let isOnlineMode = false;
+        
+        // Sample NFL Games Data
+        const sampleGames = {
+            1: [
+                { id: 1, matchup: 'Baltimore @ Kansas City', awayTeam: 'Baltimore', homeTeam: 'Kansas City', time: 'Thu 8:20 PM', isMNF: false },
+                { id: 2, matchup: 'Atlanta @ Pittsburgh', awayTeam: 'Atlanta', homeTeam: 'Pittsburgh', time: 'Sun 1:00 PM', isMNF: false },
+                { id: 3, matchup: 'Miami @ Jacksonville', awayTeam: 'Miami', homeTeam: 'Jacksonville', time: 'Sun 1:00 PM', isMNF: false },
+                { id: 4, matchup: 'Green Bay @ Philadelphia', awayTeam: 'Green Bay', homeTeam: 'Philadelphia', time: 'Sun 4:25 PM', isMNF: false },
+                { id: 5, matchup: 'NY Jets @ San Francisco', awayTeam: 'NY Jets', homeTeam: 'San Francisco', time: 'Mon 8:15 PM', isMNF: true }
+            ],
+            2: [
+                { id: 6, matchup: 'Buffalo @ Miami', awayTeam: 'Buffalo', homeTeam: 'Miami', time: 'Thu 8:15 PM', isMNF: false },
+                { id: 7, matchup: 'Indianapolis @ Houston', awayTeam: 'Indianapolis', homeTeam: 'Houston', time: 'Sun 1:00 PM', isMNF: false },
+                { id: 8, matchup: 'Dallas @ Washington', awayTeam: 'Dallas', homeTeam: 'Washington', time: 'Sun 4:25 PM', isMNF: false },
+                { id: 9, matchup: 'Cincinnati @ Pittsburgh', awayTeam: 'Cincinnati', homeTeam: 'Pittsburgh', time: 'Mon 8:15 PM', isMNF: true }
+            ]
+        };
+        
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🏈 12Bowl Loading...');
+            
+            // Load saved state first
+            loadSavedPicks();
+            
+            // Generate week buttons
+            generateWeekButtons();
+            
+            // Test backend and load players
+            await testBackendConnection();
+            
+            // Load games for current week
+            await loadGamesForWeek(currentWeek);
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            console.log('✅ 12Bowl loaded successfully!');
+            console.log('🎯 Debug: Use debug.showPicks(), debug.showState(), debug.exportData()');
+        });
+        
+        // Generate Week Navigation
+        function generateWeekButtons() {
+            const container = document.getElementById('weekSelector');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 18; i++) {
+                const btn = document.createElement('button');
+                btn.className = `week-btn ${i === currentWeek ? 'active' : ''}`;
+                btn.textContent = `Week ${i}`;
+                btn.onclick = () => changeWeek(i);
+                container.appendChild(btn);
+            }
+        }
+        
+        // Change Week
+        function changeWeek(week) {
+            if (week === currentWeek) return;
+            
+            currentWeek = week;
+            document.getElementById('currentWeekDisplay').textContent = week;
+            
+            // Update active button
+            document.querySelectorAll('.week-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', index + 1 === week);
+            });
+            
+            loadGamesForWeek(week);
+            loadPlayerPicksForWeek();
+            
+            // Save current week
+            localStorage.setItem('12bowl_current_week', week.toString());
+        }
+        
+        // Load Games for Week
+        function loadGamesForWeek(week) {
+            const container = document.getElementById('gamesContainer');
+            const games = sampleGames[week] || [];
+            
+            if (games.length === 0) {
+                container.innerHTML = `
+                    <div class="error-state">
+                        <h3>No Games Available</h3>
+                        <p>Games for Week ${week} haven't been loaded yet.</p>
                     </div>
-                    <div class="card-content">
-                        <div id="weeklyStandings" class="standings-list"></div>
+                `;
+                return;
+            }
+            
+            let html = `<div class="week-header">Week ${week} Games</div>`;
+            
+            games.forEach(game => {
+                html += `
+                    <div class="game-card" data-game-id="${game.id}">
+                        <div class="game-info">
+                            <div class="matchup">${game.matchup}</div>
+                            <div class="game-time">${game.time}${game.isMNF ? ' - MNF 🔥' : ''}</div>
+                        </div>
+                        <div class="pick-buttons">
+                            <button class="team-btn" onclick="makePick(${game.id}, '${game.awayTeam}')" 
+                                    id="btn-${game.id}-away">${game.awayTeam}</button>
+                            <button class="team-btn" onclick="makePick(${game.id}, '${game.homeTeam}')" 
+                                    id="btn-${game.id}-home">${game.homeTeam}</button>
+                        </div>
                     </div>
-                </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Load existing picks
+            if (currentPlayer) {
+                loadPlayerPicksForWeek();
+            }
+        }
+        
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Player Selection
+            document.getElementById('playerSelect').addEventListener('change', function() {
+                currentPlayer = this.value;
+                updatePlayerUI();
+                loadPlayerPicksForWeek();
                 
-                <div class="standings-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Season Leaderboard</h3>
-                        <div class="card-badge">👑</div>
-                    </div>
-                    <div class="card-content">
-                        <div id="seasonStandings" class="standings-list"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- Enhanced Notifications -->
-    <div id="notificationContainer" class="notification-container"></div>
-
-    <!-- Enhanced Debug Panel -->
-    <div id="debugPanel" class="debug-panel hidden">
-        <div class="debug-header">
-            <span class="debug-title">🔧 Debug Console</span>
-            <button class="debug-close" onclick="toggleDebugPanel()">×</button>
-        </div>
-        <div class="debug-content">
-            <div class="debug-logs" id="debugLogs"></div>
-            <div class="debug-controls">
-                <button onclick="adminControls.getStatus()" class="debug-btn">Status</button>
-                <button onclick="adminControls.testBackend()" class="debug-btn">Test API</button>
-                <button onclick="adminControls.exportData()" class="debug-btn">Export</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Backdrop for modals -->
-    <div id="backdrop" class="backdrop hidden"></div>
-
-    <!-- Scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/admin.js"></script>
-    <script src="js/app.js"></script>
+                if (currentPlayer) {
+                    showNotification(`Welcome ${currentPlayer}! 🏈`);
+                }
+            });
+            
+            // Auto-save tiebreaker
+            document.getElementById('tiebreakerInput').addEventListener('input', function() {
+                if (currentPlayer) {
+                    autoSave();
+                }
+            });
+        }
+        
+        // Update Player UI
+        function updatePlayerUI() {
+            const saveBtn = document.getElementById('saveBtn');
+            
+            if (currentPlayer) {
+                saveBtn.style.display = 'block';
+                saveBtn.disabled = false;
+            } else {
+                saveBtn.style.display = 'none';
+            }
+        }
+        
+        // Make Pick
+        function makePick(gameId, team) {
+            if (!currentPlayer) {
+                showNotification('Please select your name first!', 'error');
+                return;
+            }
+            
+            // Initialize picks structure
+            const playerKey = `${currentPlayer}_week${currentWeek}`;
+            if (!picks[playerKey]) {
+                picks[playerKey] = {
+                    player: currentPlayer,
+                    week: currentWeek,
+                    games: {},
+                    tiebreaker: null
+                };
+            }
+            
+            // Save pick
+            picks[playerKey].games[gameId] = team;
+            
+            // Update UI
+            updatePickButtons(gameId, team);
+            
+            // Auto-save and show feedback
+            autoSave();
+            showNotification(`Picked ${team}! ✅`, 'success');
+        }
+        
+        // Update Pick Buttons
+        function updatePickButtons(gameId, selectedTeam) {
+            const awayBtn = document.getElementById(`btn-${gameId}-away`);
+            const homeBtn = document.getElementById(`btn-${gameId}-home`);
+            
+            if (awayBtn && homeBtn) {
+                awayBtn.classList.remove('selected');
+                homeBtn.classList.remove('selected');
+                
+                if (selectedTeam === awayBtn.textContent.trim()) {
+                    awayBtn.classList.add('selected');
+                } else {
+                    homeBtn.classList.add('selected');
+                }
+            }
+        }
+        
+        // Auto Save
+        function autoSave() {
+            localStorage.setItem('12bowl_picks', JSON.stringify(picks));
+            localStorage.setItem('12bowl_current_week', currentWeek.toString());
+            localStorage.setItem('12bowl_current_player', currentPlayer);
+        }
+        
+        // Save Picks (Manual)
+        function savePicks() {
+            if (!currentPlayer) {
+                showNotification('Please select your name first!', 'error');
+                return;
+            }
+            
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.textContent = 'Saving...';
+            saveBtn.classList.add('saving');
+            saveBtn.disabled = true;
+            
+            // Get tiebreaker
+            const playerKey = `${currentPlayer}_week${currentWeek}`;
+            const tiebreakerValue = document.getElementById('tiebreakerInput').value;
+            
+            if (picks[playerKey] && tiebreakerValue) {
+                picks[playerKey].tiebreaker = parseInt(tiebreakerValue);
+            }
+            
+            // Save locally
+            autoSave();
+            
+            // Try to save to backend if online
+            if (isOnlineMode) {
+                saveToBackend().then(() => {
+                    showNotification(`All picks saved for ${currentPlayer}! 🏈`, 'success');
+                }).catch(() => {
+                    showNotification('Saved locally. Will sync when online.', 'warning');
+                }).finally(() => {
+                    resetSaveButton();
+                });
+            } else {
+                setTimeout(() => {
+                    showNotification(`Picks saved locally for ${currentPlayer}! 🏈`, 'success');
+                    resetSaveButton();
+                }, 500);
+            }
+        }
+        
+        // Reset Save Button
+        function resetSaveButton() {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.textContent = '💾 Save My Picks';
+            saveBtn.classList.remove('saving');
+            saveBtn.disabled = false;
+        }
+        
+        // Load Saved Picks
+        function loadSavedPicks() {
+            const savedPicks = localStorage.getItem('12bowl_picks');
+            const savedWeek = localStorage.getItem('12bowl_current_week');
+            const savedPlayer = localStorage.getItem('12bowl_current_player');
+            
+            if (savedPicks) {
+                picks = JSON.parse(savedPicks);
+            }
+            
+            if (savedWeek && !isNaN(parseInt(savedWeek))) {
+                changeWeek(parseInt(savedWeek));
+            }
+            
+            if (savedPlayer) {
+                document.getElementById('playerSelect').value = savedPlayer;
+                currentPlayer = savedPlayer;
+                updatePlayerUI();
+            }
+        }
+        
+        // Load Player Picks for Current Week
+        function loadPlayerPicksForWeek() {
+            if (!currentPlayer) return;
+            
+            const playerKey = `${currentPlayer}_week${currentWeek}`;
+            const playerPicks = picks[playerKey];
+            
+            if (playerPicks) {
+                // Load tiebreaker
+                if (playerPicks.tiebreaker) {
+                    document.getElementById('tiebreakerInput').value = playerPicks.tiebreaker;
+                }
+                
+                // Load game picks
+                Object.entries(playerPicks.games).forEach(([gameId, team]) => {
+                    updatePickButtons(parseInt(gameId), team);
+                });
+            } else {
+                // Clear tiebreaker and picks
+                document.getElementById('tiebreakerInput').value = '';
+                document.querySelectorAll('.team-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+            }
+        }
+        
+        // Test Backend Connection
+        async function testBackendConnection() {
+            try {
+                const response = await fetch('/.netlify/functions/sheets-api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'getCurrentWeek', data: {} })
+                });
+                
+                if (response.ok) {
+                    isOnlineMode = true;
+                    updateConnectionStatus(true);
+                }
+            } catch (error) {
+                isOnlineMode = false;
+                updateConnectionStatus(false);
+            }
+        }
+        
+        // Update Connection Status
+        function updateConnectionStatus(online) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            if (online) {
+                statusDot.classList.remove('offline');
+                statusText.textContent = 'Connected';
+            } else {
+                statusDot.classList.add('offline');
+                statusText.textContent = 'Local Mode';
+            }
+        }
+        
+        // Save to Backend (Placeholder)
+        async function saveToBackend() {
+            // This would send picks to your Google Sheets
+            // For now, just simulate the API call
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    if (isOnlineMode) {
+                        resolve();
+                    } else {
+                        reject(new Error('Offline'));
+                    }
+                }, 1000);
+            });
+        }
+        
+        // Show Notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Debug Functions (accessible via console)
+        window.debug = {
+            showPicks: () => console.log('Current picks:', picks),
+            showState: () => console.log('App state:', { currentWeek, currentPlayer, isOnlineMode }),
+            clearPicks: () => {
+                picks = {};
+                localStorage.removeItem('12bowl_picks');
+                loadPlayerPicksForWeek();
+                console.log('Picks cleared');
+            },
+            exportData: () => {
+                const data = { picks, currentWeek, currentPlayer };
+                console.log('Export data:', JSON.stringify(data, null, 2));
+                return data;
+            }
+        };
+        
+        console.log('🎯 Debug commands: debug.showPicks(), debug.showState(), debug.clearPicks(), debug.exportData()');
+    </script>
 </body>
 </html>
