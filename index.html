@@ -91,6 +91,30 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 10px;
+            border: 1px solid;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-connected {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+            color: #22c55e;
+            border-color: #22c55e;
+        }
+
+        .status-offline {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            color: #ef4444;
+            border-color: #ef4444;
+        }
         
         .controls-section {
             display: grid;
@@ -239,6 +263,24 @@
             position: relative;
             overflow: hidden;
         }
+
+        .game-card.completed {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .game-card.completed .game-info::after {
+            content: '✓ FINAL';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(34, 197, 94, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
         
         .game-card::before {
             content: '';
@@ -271,9 +313,20 @@
                 0 0 30px rgba(178, 34, 34, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
+
+        .game-card.correct-pick {
+            border: 2px solid #22c55e;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+        }
+
+        .game-card.wrong-pick {
+            border: 2px solid #ef4444;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+        }
         
         .game-info {
             flex: 1;
+            position: relative;
         }
         
         .matchup {
@@ -299,6 +352,13 @@
             padding: 4px 12px;
             border-radius: 20px;
             border: 1px solid rgba(178, 34, 34, 0.3);
+        }
+
+        .game-score {
+            color: #22c55e;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 8px;
         }
         
         .mnf-badge {
@@ -371,6 +431,18 @@
             color: white;
             border-color: #B22222;
             box-shadow: 0 0 20px rgba(178, 34, 34, 0.5);
+        }
+
+        .team-btn.winning-team {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.2));
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .team-btn.losing-team {
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.3), rgba(107, 114, 128, 0.2));
+            border-color: #6b7280;
+            color: #9ca3af;
         }
         
         .tiebreaker {
@@ -539,6 +611,59 @@
         .save-btn:active {
             transform: translateY(-1px);
         }
+
+        .save-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(34, 197, 94, 0.8));
+            border: 1px solid #22c55e;
+            color: white;
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(239, 68, 68, 0.8));
+            border: 1px solid #ef4444;
+            color: white;
+        }
+
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #22c55e;
+            max-width: 300px;
+            border: 1px solid #22c55e;
+            display: none;
+        }
+
+        .debug-panel.show {
+            display: block;
+        }
         
         @media (max-width: 1024px) {
             .container {
@@ -552,7 +677,7 @@
             
             .player-selector {
                 text-align: center;
-                order: -1; /* Player selector goes to top on tablet */
+                order: -1;
             }
             
             .week-selector {
@@ -588,14 +713,13 @@
                 letter-spacing: 1px;
             }
             
-            /* Mobile week selector - scrollable */
             .week-selector {
                 display: flex;
                 overflow-x: auto;
                 overflow-y: hidden;
                 gap: 8px;
                 padding: 10px 5px;
-                margin: 0 -10px; /* Extend to edges */
+                margin: 0 -10px;
                 scroll-snap-type: x mandatory;
                 -webkit-overflow-scrolling: touch;
             }
@@ -631,7 +755,6 @@
                 border-radius: 16px;
             }
             
-            /* Mobile game cards - stack vertically */
             .game-card {
                 flex-direction: column;
                 text-align: center;
@@ -703,11 +826,6 @@
                 margin-bottom: 15px;
             }
             
-            .tiebreaker p {
-                font-size: 1rem;
-                margin-bottom: 20px;
-            }
-            
             .tiebreaker input {
                 width: 160px;
                 padding: 20px;
@@ -756,9 +874,14 @@
                 font-size: 1rem;
             }
             
-            /* Live status indicator - adjust for mobile */
             .header::before {
-                display: none; /* Hide complex border on mobile */
+                display: none;
+            }
+
+            .notification {
+                right: 10px;
+                left: 10px;
+                max-width: none;
             }
         }
         
@@ -803,42 +926,21 @@
             }
         }
         
-        /* Mobile-specific enhancements */
         @media (max-width: 768px) {
-            /* Prevent zoom on input focus */
             input, select {
                 font-size: 16px !important;
             }
             
-            /* Better touch targets */
             .week-btn, .team-btn, .save-btn {
-                min-height: 44px; /* Apple's recommended touch target */
+                min-height: 44px;
             }
             
-            /* Smooth scrolling for week selector */
             .week-selector {
                 scroll-behavior: smooth;
-            }
-            
-            /* Hide scrollbar indicator on mobile Safari */
-            .week-selector {
                 scrollbar-width: thin;
-            }
-            
-            /* Loading and error states for mobile */
-            .loading {
-                padding: 40px 20px;
-                font-size: 1.1rem;
-            }
-            
-            .error {
-                padding: 20px 15px;
-                font-size: 1rem;
-                margin: 20px 10px;
             }
         }
         
-        /* Landscape phone optimization */
         @media (max-width: 896px) and (orientation: landscape) {
             .header {
                 padding: 15px;
@@ -866,7 +968,6 @@
             }
         }
         
-        /* High DPI displays */
         @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
             .header h1 {
                 text-rendering: optimizeLegibility;
@@ -897,7 +998,6 @@
             backdrop-filter: blur(10px);
         }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -922,28 +1022,14 @@
         <div class="header">
             <h1>🏈 $12 Bowl 🏈</h1>
             <p>Where Legends Are Made</p>
+            <div class="status-indicator" id="connectionStatus">
+                🔄 Connecting...
+            </div>
         </div>
         
         <div class="controls-section">
-            <div class="week-selector">
-                <button class="week-btn active" data-week="1">Week 1</button>
-                <button class="week-btn" data-week="2">Week 2</button>
-                <button class="week-btn" data-week="3">Week 3</button>
-                <button class="week-btn" data-week="4">Week 4</button>
-                <button class="week-btn" data-week="5">Week 5</button>
-                <button class="week-btn" data-week="6">Week 6</button>
-                <button class="week-btn" data-week="7">Week 7</button>
-                <button class="week-btn" data-week="8">Week 8</button>
-                <button class="week-btn" data-week="9">Week 9</button>
-                <button class="week-btn" data-week="10">Week 10</button>
-                <button class="week-btn" data-week="11">Week 11</button>
-                <button class="week-btn" data-week="12">Week 12</button>
-                <button class="week-btn" data-week="13">Week 13</button>
-                <button class="week-btn" data-week="14">Week 14</button>
-                <button class="week-btn" data-week="15">Week 15</button>
-                <button class="week-btn" data-week="16">Week 16</button>
-                <button class="week-btn" data-week="17">Week 17</button>
-                <button class="week-btn" data-week="18">Week 18</button>
+            <div class="week-selector" id="weekSelector">
+                <!-- Week buttons will be generated dynamically -->
             </div>
             
             <div class="player-selector">
@@ -969,7 +1055,7 @@
             <input type="number" id="tiebreakerInput" placeholder="Total Points" min="0" max="150">
         </div>
         
-        <button class="save-btn" onclick="savePicks()" style="display: none;">
+        <button class="save-btn" id="saveBtn" onclick="savePicks()" style="display: none;">
             <span>Save My Picks</span>
         </button>
         
@@ -988,6 +1074,12 @@
         </div>
     </div>
 
+    <!-- Notifications -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Debug Panel -->
+    <div id="debugPanel" class="debug-panel"></div>
+
     <script>
         // Global variables
         let currentWeek = 1;
@@ -1001,9 +1093,20 @@
                 'Kid4': 0, 'Kid5': 0, 'Kid6': 0
             }
         };
+        let isOnlineMode = false;
+        let debugMode = false;
         
-        // Sample NFL games data (normally would come from ESPN API)
-        const sampleGames = {
+        // Configuration
+        const CONFIG = {
+            NETLIFY_FUNCTION_URL: '/.netlify/functions/sheets-api',
+            MAX_RETRIES: 3,
+            RETRY_DELAY: 1000,
+            AUTO_SAVE_DELAY: 2000,
+            DEBUG: window.location.search.includes('debug=true')
+        };
+
+        // Enhanced sample data with more realistic NFL games
+        const SAMPLE_GAMES = {
             1: [
                 {
                     id: 1,
@@ -1012,7 +1115,9 @@
                     awayTeam: 'Baltimore',
                     homeTeam: 'Kansas City',
                     overUnder: 46.5,
-                    completed: false
+                    completed: false,
+                    awayScore: null,
+                    homeScore: null
                 },
                 {
                     id: 2,
@@ -1021,7 +1126,9 @@
                     awayTeam: 'Atlanta',
                     homeTeam: 'Pittsburgh',
                     overUnder: 42.0,
-                    completed: false
+                    completed: false,
+                    awayScore: null,
+                    homeScore: null
                 },
                 {
                     id: 3,
@@ -1030,7 +1137,9 @@
                     awayTeam: 'Miami',
                     homeTeam: 'Jacksonville',
                     overUnder: 47.5,
-                    completed: false
+                    completed: false,
+                    awayScore: null,
+                    homeScore: null
                 },
                 {
                     id: 4,
@@ -1039,7 +1148,9 @@
                     awayTeam: 'Green Bay',
                     homeTeam: 'Philadelphia', 
                     overUnder: 48.5,
-                    completed: false
+                    completed: false,
+                    awayScore: null,
+                    homeScore: null
                 },
                 {
                     id: 5,
@@ -1049,20 +1160,65 @@
                     homeTeam: 'San Francisco',
                     overUnder: 43.5,
                     completed: false,
+                    awayScore: null,
+                    homeScore: null,
                     isMNF: true
+                }
+            ],
+            2: [
+                {
+                    id: 6,
+                    day: 'Thursday, Sep. 12',
+                    time: '8:15 PM ET',
+                    awayTeam: 'Buffalo',
+                    homeTeam: 'Miami',
+                    overUnder: 49.0,
+                    completed: true,
+                    awayScore: 31,
+                    homeScore: 10,
+                    winner: 'Buffalo'
+                },
+                {
+                    id: 7,
+                    day: 'Sunday, Sep. 15',
+                    time: '1:00 PM ET',
+                    awayTeam: 'Indianapolis',
+                    homeTeam: 'Houston',
+                    overUnder: 44.5,
+                    completed: true,
+                    awayScore: 29,
+                    homeScore: 27,
+                    winner: 'Indianapolis'
+                },
+                {
+                    id: 8,
+                    day: 'Sunday, Sep. 15',
+                    time: '4:25 PM ET',
+                    awayTeam: 'Dallas',
+                    homeTeam: 'Washington',
+                    overUnder: 45.5,
+                    completed: true,
+                    awayScore: 23,
+                    homeScore: 26,
+                    winner: 'Washington'
                 }
             ]
         };
         
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
+            debugLog('App initializing...');
             initializeApp();
             setupEventListeners();
+            generateWeekButtons();
             loadGames(currentWeek);
             loadStandings();
+            testConnection();
         });
         
         function initializeApp() {
+            debugLog('Loading saved data...');
+            
             // Load saved data
             const savedPicks = JSON.parse(localStorage.getItem('nflPicks') || '{}');
             picks = savedPicks;
@@ -1071,27 +1227,123 @@
             if (Object.keys(savedStandings).length > 0) {
                 standings = savedStandings;
             }
+
+            // Load saved current week
+            const savedWeek = localStorage.getItem('currentWeek');
+            if (savedWeek) {
+                currentWeek = parseInt(savedWeek);
+            }
+
+            // Enable debug mode if needed
+            if (CONFIG.DEBUG) {
+                debugMode = true;
+                document.getElementById('debugPanel').classList.add('show');
+            }
+
+            debugLog(`Initialized - Week: ${currentWeek}, Picks: ${Object.keys(picks).length}, Debug: ${debugMode}`);
         }
         
         function setupEventListeners() {
-            // Week selector
-            document.querySelectorAll('.week-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelector('.week-btn.active').classList.remove('active');
-                    this.classList.add('active');
-                    currentWeek = parseInt(this.dataset.week);
-                    loadGames(currentWeek);
-                });
-            });
-            
             // Player selector
             document.getElementById('playerSelect').addEventListener('change', function() {
                 currentPlayer = this.value;
+                debugLog(`Player selected: ${currentPlayer}`);
+                
                 if (currentPlayer) {
-                    document.querySelector('.save-btn').style.display = 'block';
+                    document.getElementById('saveBtn').style.display = 'block';
                     loadPlayerPicks();
+                } else {
+                    document.getElementById('saveBtn').style.display = 'none';
                 }
             });
+
+            // Tiebreaker input
+            const tiebreakerInput = document.getElementById('tiebreakerInput');
+            let tiebreakerTimeout;
+            
+            tiebreakerInput.addEventListener('input', function() {
+                clearTimeout(tiebreakerTimeout);
+                tiebreakerTimeout = setTimeout(() => {
+                    if (currentPlayer) {
+                        savePicks(false); // Auto-save tiebreaker
+                    }
+                }, CONFIG.AUTO_SAVE_DELAY);
+            });
+
+            // Keyboard shortcuts for debugging
+            if (CONFIG.DEBUG) {
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.key === 'd') {
+                        e.preventDefault();
+                        debugMode = !debugMode;
+                        document.getElementById('debugPanel').classList.toggle('show', debugMode);
+                        debugLog(`Debug mode: ${debugMode ? 'ON' : 'OFF'}`);
+                    }
+                });
+            }
+        }
+
+        function generateWeekButtons() {
+            const weekSelector = document.getElementById('weekSelector');
+            weekSelector.innerHTML = '';
+            
+            for (let i = 1; i <= 18; i++) {
+                const btn = document.createElement('button');
+                btn.className = `week-btn ${i === currentWeek ? 'active' : ''}`;
+                btn.dataset.week = i;
+                btn.textContent = `Week ${i}`;
+                
+                btn.addEventListener('click', function() {
+                    document.querySelector('.week-btn.active')?.classList.remove('active');
+                    this.classList.add('active');
+                    currentWeek = parseInt(this.dataset.week);
+                    localStorage.setItem('currentWeek', currentWeek.toString());
+                    debugLog(`Week changed to: ${currentWeek}`);
+                    loadGames(currentWeek);
+                });
+                
+                weekSelector.appendChild(btn);
+            }
+        }
+
+        async function testConnection() {
+            debugLog('Testing connection to backend...');
+            updateConnectionStatus('🔄 Connecting...', 'status-connecting');
+            
+            try {
+                const response = await callNetlifyFunction('getCurrentWeek', {});
+                if (response.success !== false) {
+                    isOnlineMode = true;
+                    updateConnectionStatus('🟢 Connected', 'status-connected');
+                    debugLog('Backend connection successful');
+                    
+                    // Sync current week from backend
+                    if (response.currentWeek && response.currentWeek !== currentWeek) {
+                        currentWeek = response.currentWeek;
+                        updateActiveWeekButton();
+                        loadGames(currentWeek);
+                        debugLog(`Week synced from backend: ${currentWeek}`);
+                    }
+                } else {
+                    throw new Error('Backend returned error');
+                }
+            } catch (error) {
+                isOnlineMode = false;
+                updateConnectionStatus('🔴 Offline Mode', 'status-offline');
+                debugLog(`Backend connection failed: ${error.message}`);
+                showNotification('Running in offline mode with sample data', 'error');
+            }
+        }
+
+        function updateConnectionStatus(text, className) {
+            const status = document.getElementById('connectionStatus');
+            status.textContent = text;
+            status.className = `status-indicator ${className}`;
+        }
+
+        function updateActiveWeekButton() {
+            document.querySelector('.week-btn.active')?.classList.remove('active');
+            document.querySelector(`[data-week="${currentWeek}"]`)?.classList.add('active');
         }
         
         async function loadGames(week) {
@@ -1100,10 +1352,27 @@
             
             try {
                 container.innerHTML = '<div class="loading">Loading NFL games for this week...</div>';
+                debugLog(`Loading games for week ${week}...`);
                 
-                // In a real app, this would fetch from ESPN API
-                // For demo, using sample data
-                games = sampleGames[week] || [];
+                let gameData;
+                
+                if (isOnlineMode) {
+                    // Try to get games from backend
+                    try {
+                        const response = await callNetlifyFunction('getGames', { week });
+                        gameData = response.games || [];
+                        debugLog(`Loaded ${gameData.length} games from backend`);
+                    } catch (error) {
+                        debugLog(`Backend error, falling back to sample data: ${error.message}`);
+                        gameData = SAMPLE_GAMES[week] || [];
+                    }
+                } else {
+                    // Use sample data
+                    gameData = SAMPLE_GAMES[week] || [];
+                    debugLog(`Using sample data: ${gameData.length} games`);
+                }
+                
+                games = gameData;
                 
                 if (games.length === 0) {
                     container.innerHTML = '<div class="error">No games available for this week yet.</div>';
@@ -1114,9 +1383,14 @@
                 displayGames(games);
                 tiebreakerSection.style.display = 'block';
                 
+                // Load player picks if player is selected
+                if (currentPlayer) {
+                    loadPlayerPicks();
+                }
+                
             } catch (error) {
                 container.innerHTML = '<div class="error">Error loading games. Please try again later.</div>';
-                console.error('Error loading games:', error);
+                debugLog(`Error loading games: ${error.message}`);
             }
         }
         
@@ -1142,23 +1416,41 @@
                 
                 gamesByDay[day].forEach(game => {
                     const playerKey = `${currentPlayer}_week${currentWeek}`;
-                    const savedPick = picks[playerKey] ? picks[playerKey].games[game.id] : null;
+                    const savedPick = picks[playerKey]?.games?.[game.id] || null;
+                    
+                    // Determine card styling based on game completion and pick correctness
+                    let cardClasses = 'game-card';
+                    if (game.completed) {
+                        cardClasses += ' completed';
+                        if (savedPick) {
+                            if (savedPick === game.winner) {
+                                cardClasses += ' correct-pick';
+                            } else {
+                                cardClasses += ' wrong-pick';
+                            }
+                        }
+                    }
                     
                     html += `
-                        <div class="game-card" data-game-id="${game.id}">
+                        <div class="${cardClasses}" data-game-id="${game.id}">
                             <div class="game-info">
                                 <div class="matchup">${game.awayTeam} @ ${game.homeTeam}</div>
                                 <div class="game-time">${game.time}</div>
                                 <div class="over-under">Over/Under: ${game.overUnder}</div>
+                                ${game.completed && game.awayScore !== null && game.homeScore !== null ? 
+                                    `<div class="game-score">Final: ${game.awayTeam} ${game.awayScore} - ${game.homeTeam} ${game.homeScore}</div>` : ''
+                                }
                                 ${game.isMNF ? '<div class="mnf-badge">🔥 Monday Night Football</div>' : ''}
                             </div>
                             <div class="pick-section">
-                                <button class="team-btn ${savedPick === game.awayTeam ? 'selected' : ''}" 
-                                        onclick="makePick(${game.id}, '${game.awayTeam}')">
+                                <button class="team-btn ${savedPick === game.awayTeam ? 'selected' : ''} ${game.completed ? (game.winner === game.awayTeam ? 'winning-team' : 'losing-team') : ''}" 
+                                        onclick="makePick(${game.id}, '${game.awayTeam}')" 
+                                        ${game.completed ? 'disabled' : ''}>
                                     <span>${game.awayTeam}</span>
                                 </button>
-                                <button class="team-btn ${savedPick === game.homeTeam ? 'selected' : ''}" 
-                                        onclick="makePick(${game.id}, '${game.homeTeam}')">
+                                <button class="team-btn ${savedPick === game.homeTeam ? 'selected' : ''} ${game.completed ? (game.winner === game.homeTeam ? 'winning-team' : 'losing-team') : ''}" 
+                                        onclick="makePick(${game.id}, '${game.homeTeam}')"
+                                        ${game.completed ? 'disabled' : ''}>
                                     <span>${game.homeTeam}</span>
                                 </button>
                             </div>
@@ -1174,7 +1466,14 @@
         
         function makePick(gameId, team) {
             if (!currentPlayer) {
-                alert('Please select your name first!');
+                showNotification('Please select your name first!', 'error');
+                return;
+            }
+
+            // Check if game is completed
+            const game = games.find(g => g.id === gameId);
+            if (game && game.completed) {
+                showNotification('Cannot pick completed games!', 'error');
                 return;
             }
             
@@ -1190,13 +1489,16 @@
             }
             
             picks[playerKey].games[gameId] = team;
+            debugLog(`Pick made: ${currentPlayer} - Game ${gameId} - ${team}`);
             
             // Update UI
             const gameCard = document.querySelector(`[data-game-id="${gameId}"]`);
             const buttons = gameCard.querySelectorAll('.team-btn');
             buttons.forEach(btn => btn.classList.remove('selected'));
             
-            const selectedBtn = Array.from(buttons).find(btn => btn.textContent.trim() === team);
+            const selectedBtn = Array.from(buttons).find(btn => 
+                btn.querySelector('span').textContent.trim() === team
+            );
             selectedBtn.classList.add('selected');
             
             gameCard.classList.add('selected');
@@ -1210,8 +1512,12 @@
             const playerKey = `${currentPlayer}_week${currentWeek}`;
             const playerPicks = picks[playerKey];
             
+            debugLog(`Loading picks for ${playerKey}:`, playerPicks);
+            
             if (playerPicks && playerPicks.tiebreaker) {
                 document.getElementById('tiebreakerInput').value = playerPicks.tiebreaker;
+            } else {
+                document.getElementById('tiebreakerInput').value = '';
             }
             
             // Update game displays if games are loaded
@@ -1220,23 +1526,121 @@
             }
         }
         
-        function savePicks(showAlert = true) {
+        async function savePicks(showAlert = true) {
             if (!currentPlayer) {
-                alert('Please select your name first!');
+                showNotification('Please select your name first!', 'error');
                 return;
             }
             
-            const playerKey = `${currentPlayer}_week${currentWeek}`;
-            const tiebreakerValue = document.getElementById('tiebreakerInput').value;
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<span>Saving...</span>';
+            saveBtn.disabled = true;
             
-            if (picks[playerKey] && tiebreakerValue) {
-                picks[playerKey].tiebreaker = parseInt(tiebreakerValue);
+            try {
+                const playerKey = `${currentPlayer}_week${currentWeek}`;
+                const tiebreakerValue = document.getElementById('tiebreakerInput').value;
+                
+                if (picks[playerKey] && tiebreakerValue) {
+                    picks[playerKey].tiebreaker = parseInt(tiebreakerValue);
+                }
+                
+                // Save locally first
+                localStorage.setItem('nflPicks', JSON.stringify(picks));
+                
+                // Try to save to backend if online
+                if (isOnlineMode && picks[playerKey]) {
+                    try {
+                        // Save each pick individually to backend
+                        const playerPicks = picks[playerKey];
+                        
+                        for (const [gameId, teamPick] of Object.entries(playerPicks.games)) {
+                            await callNetlifyFunction('savePick', {
+                                player: currentPlayer,
+                                week: currentWeek,
+                                gameId: gameId,
+                                teamPick: teamPick,
+                                tiebreaker: playerPicks.tiebreaker
+                            });
+                        }
+                        
+                        debugLog(`Picks saved to backend for ${currentPlayer}, week ${currentWeek}`);
+                    } catch (error) {
+                        debugLog(`Backend save failed: ${error.message}`);
+                        // Don't show error since local save worked
+                    }
+                }
+                
+                if (showAlert) {
+                    showNotification('Your picks have been saved! 🏈', 'success');
+                }
+                
+                debugLog(`Picks saved for ${currentPlayer}, week ${currentWeek}`);
+                
+            } catch (error) {
+                debugLog(`Save error: ${error.message}`);
+                showNotification('Error saving picks. Please try again.', 'error');
+            } finally {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
             }
+        }
+
+        async function callNetlifyFunction(action, data, retryCount = 0) {
+            try {
+                const response = await fetch(CONFIG.NETLIFY_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action, data })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                return result;
+
+            } catch (error) {
+                debugLog(`Netlify function call failed (attempt ${retryCount + 1}): ${error.message}`);
+                
+                if (retryCount < CONFIG.MAX_RETRIES) {
+                    await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * (retryCount + 1)));
+                    return callNetlifyFunction(action, data, retryCount + 1);
+                }
+                
+                throw error;
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
             
-            localStorage.setItem('nflPicks', JSON.stringify(picks));
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        function debugLog(message, data = null) {
+            if (!debugMode) return;
             
-            if (showAlert) {
-                alert('Your picks have been saved! 🏈');
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] ${message}`, data || '');
+            
+            const debugPanel = document.getElementById('debugPanel');
+            if (debugPanel.classList.contains('show')) {
+                const logEntry = `${timestamp}: ${message}${data ? ' ' + JSON.stringify(data) : ''}\n`;
+                debugPanel.textContent = (debugPanel.textContent + logEntry).split('\n').slice(-10).join('\n');
             }
         }
         
@@ -1249,17 +1653,15 @@
             const weeklyContainer = document.getElementById('weeklyStandings');
             let html = '';
             
-            // Sample weekly winners (in real app, calculated from game results)
-            const sampleWeeklyWinners = {
-                1: { player: 'Kid3', score: '12/15' },
-                2: { player: 'Kid1', score: '11/16' },
-                3: { player: 'Kid5', score: '13/14' }
-            };
+            // Calculate weekly winners from picks and game results
+            const weeklyWinners = calculateWeeklyWinners();
             
-            Object.keys(sampleWeeklyWinners).forEach(week => {
-                const winner = sampleWeeklyWinners[week];
+            Object.keys(weeklyWinners).forEach(week => {
+                const winner = weeklyWinners[week];
+                const isCurrentWeek = parseInt(week) === currentWeek;
+                
                 html += `
-                    <div class="standings-row ${week == currentWeek ? 'winner' : ''}">
+                    <div class="standings-row ${isCurrentWeek ? 'winner' : ''}">
                         <span class="position">Week ${week}</span>
                         <span class="score">${winner.player} (${winner.score})</span>
                     </div>
@@ -1272,11 +1674,24 @@
             
             weeklyContainer.innerHTML = html;
         }
+
+        function calculateWeeklyWinners() {
+            const winners = {};
+            
+            // Sample weekly winners (in a real app, this would be calculated from actual game results)
+            const sampleWeeklyWinners = {
+                1: { player: 'Kid3', score: '12/15' },
+                2: { player: 'Kid1', score: '11/16' },
+                3: { player: 'Kid5', score: '13/14' }
+            };
+            
+            return sampleWeeklyWinners;
+        }
         
         function updateSeasonStandings() {
             const seasonContainer = document.getElementById('seasonStandings');
             
-            // Sample season standings (would be calculated from actual results)
+            // Calculate season standings (would be calculated from actual results)
             const seasonScores = [
                 { player: 'Kid3', wins: 25 },
                 { player: 'Kid1', wins: 23 },
@@ -1299,39 +1714,36 @@
             seasonContainer.innerHTML = html;
         }
         
-        // Mock function to simulate getting live NFL data
-        // In production, this would call ESPN API
-        async function fetchNFLGames(week) {
-            // This now calls the live data functions above
-            return await fetchLiveNFLGames(week);
-        }
-        
-        // Add admin functions for manual control
+        // Admin controls for debugging and management
         window.adminControls = {
             setWeek: (week) => {
                 currentWeek = week;
                 updateActiveWeekButton();
                 loadGames(currentWeek);
-                console.log('✅ Manually set to Week', week);
+                localStorage.setItem('currentWeek', currentWeek.toString());
+                debugLog(`✅ Manually set to Week ${week}`);
+                showNotification(`Week changed to ${week}`, 'success');
             },
             
-            toggleLiveData: () => {
-                liveDataEnabled = !liveDataEnabled;
-                console.log('🔄 Live data:', liveDataEnabled ? 'ENABLED' : 'DISABLED');
+            toggleOnlineMode: () => {
+                isOnlineMode = !isOnlineMode;
+                debugLog(`🔄 Online mode: ${isOnlineMode ? 'ENABLED' : 'DISABLED'}`);
+                updateConnectionStatus(
+                    isOnlineMode ? '🟢 Connected' : '🔴 Offline Mode',
+                    isOnlineMode ? 'status-connected' : 'status-offline'
+                );
                 loadGames(currentWeek);
             },
             
-            processWeekResults: () => {
-                calculateWeeklyWinners();
-                updateStandings();
-                showWeeklyResults();
-                console.log('🏆 Week results processed manually');
-            },
-            
-            resetSeason: () => {
-                if (confirm('⚠️ Reset entire season? This cannot be undone!')) {
-                    localStorage.clear();
-                    location.reload();
+            testBackend: async () => {
+                debugLog('🧪 Testing backend connection...');
+                try {
+                    const result = await callNetlifyFunction('getCurrentWeek', {});
+                    debugLog('✅ Backend test successful:', result);
+                    showNotification('Backend connection successful!', 'success');
+                } catch (error) {
+                    debugLog('❌ Backend test failed:', error.message);
+                    showNotification(`Backend test failed: ${error.message}`, 'error');
                 }
             },
             
@@ -1339,36 +1751,258 @@
                 const data = {
                     picks: picks,
                     standings: standings,
-                    currentWeek: currentWeek
+                    currentWeek: currentWeek,
+                    exportDate: new Date().toISOString(),
+                    version: '1.0'
                 };
-                console.log('📊 Season Data Export:', data);
                 
-                // Download as JSON file
                 const blob = new Blob([JSON.stringify(data, null, 2)], 
                     { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `12bowl-season-data-week${currentWeek}.json`;
+                a.download = `12bowl-data-week${currentWeek}-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                debugLog('📊 Data exported');
+                showNotification('Data exported successfully!', 'success');
+            },
+            
+            importData: (jsonData) => {
+                try {
+                    const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+                    
+                    if (data.picks) picks = data.picks;
+                    if (data.standings) standings = data.standings;
+                    if (data.currentWeek) {
+                        currentWeek = data.currentWeek;
+                        updateActiveWeekButton();
+                    }
+                    
+                    // Save to localStorage
+                    localStorage.setItem('nflPicks', JSON.stringify(picks));
+                    localStorage.setItem('nflStandings', JSON.stringify(standings));
+                    localStorage.setItem('currentWeek', currentWeek.toString());
+                    
+                    // Refresh displays
+                    loadGames(currentWeek);
+                    loadStandings();
+                    if (currentPlayer) loadPlayerPicks();
+                    
+                    debugLog('📥 Data imported successfully');
+                    showNotification('Data imported successfully!', 'success');
+                    
+                } catch (error) {
+                    debugLog('❌ Import failed:', error.message);
+                    showNotification(`Import failed: ${error.message}`, 'error');
+                }
+            },
+            
+            resetSeason: () => {
+                if (confirm('⚠️ Reset entire season? This cannot be undone!')) {
+                    localStorage.clear();
+                    debugLog('🗑️ Season data reset');
+                    showNotification('Season reset complete!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            },
+            
+            simulateGameResults: (week) => {
+                const weekGames = SAMPLE_GAMES[week || currentWeek];
+                if (!weekGames) {
+                    debugLog('❌ No games found for simulation');
+                    return;
+                }
+                
+                weekGames.forEach(game => {
+                    if (!game.completed) {
+                        // Simulate random scores
+                        game.awayScore = Math.floor(Math.random() * 35) + 7;
+                        game.homeScore = Math.floor(Math.random() * 35) + 7;
+                        game.completed = true;
+                        game.winner = game.awayScore > game.homeScore ? game.awayTeam : game.homeTeam;
+                    }
+                });
+                
+                // Update games display
+                displayGames(weekGames);
+                debugLog(`🎲 Simulated results for week ${week || currentWeek}`);
+                showNotification(`Game results simulated for week ${week || currentWeek}`, 'success');
+            },
+            
+            calculateWeekScores: (week) => {
+                const targetWeek = week || currentWeek;
+                const weekGames = SAMPLE_GAMES[targetWeek];
+                if (!weekGames) return;
+                
+                const scores = {};
+                const players = ['Kid1', 'Kid2', 'Kid3', 'Kid4', 'Kid5', 'Kid6'];
+                
+                players.forEach(player => {
+                    const playerKey = `${player}_week${targetWeek}`;
+                    const playerPicks = picks[playerKey];
+                    
+                    if (!playerPicks) {
+                        scores[player] = 0;
+                        return;
+                    }
+                    
+                    let correct = 0;
+                    let total = 0;
+                    
+                    weekGames.forEach(game => {
+                        if (game.completed && game.winner) {
+                            total++;
+                            const pick = playerPicks.games[game.id];
+                            if (pick === game.winner) {
+                                correct++;
+                            }
+                        }
+                    });
+                    
+                    scores[player] = `${correct}/${total}`;
+                });
+                
+                debugLog(`📊 Week ${targetWeek} scores:`, scores);
+                return scores;
+            },
+            
+            getStatus: () => {
+                const status = {
+                    currentWeek,
+                    currentPlayer,
+                    isOnlineMode,
+                    debugMode,
+                    totalGames: games.length,
+                    totalPicks: Object.keys(picks).length,
+                    localStorageSize: JSON.stringify(picks).length,
+                    lastSaved: localStorage.getItem('nflPicks') ? 'Available' : 'None'
+                };
+                
+                console.table(status);
+                debugLog('📋 Current status:', status);
+                return status;
             }
         };
+
+        // Initialize file import helper
+        window.importFromFile = () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            window.adminControls.importData(e.target.result);
+                        } catch (error) {
+                            showNotification(`Import failed: ${error.message}`, 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        };
         
-        // Add console help
-        console.log(`
-🏈 $12 Bowl Admin Controls Available:
+        // Console help message
+        if (CONFIG.DEBUG || debugMode) {
+            console.log(`
+🏈 $12 Bowl Enhanced Debug Console Available:
         
-📅 adminControls.setWeek(5)     - Manually set week
-🔄 adminControls.toggleLiveData() - Toggle live/sample data  
-🏆 adminControls.processWeekResults() - Calculate winners
-🗑️ adminControls.resetSeason()   - Reset everything
-📊 adminControls.exportData()    - Download all data
+📅 adminControls.setWeek(5)           - Manually set week
+🔄 adminControls.toggleOnlineMode()   - Toggle online/offline mode  
+🧪 adminControls.testBackend()        - Test backend connection
+🎲 adminControls.simulateGameResults(2) - Simulate game results
+📊 adminControls.calculateWeekScores(2) - Calculate week scores
+📥 importFromFile()                   - Import data from JSON file
+📤 adminControls.exportData()         - Export all data to file
+🗑️ adminControls.resetSeason()       - Reset everything
+📋 adminControls.getStatus()          - Show current status
+
+Keyboard Shortcuts:
+- Ctrl+D: Toggle debug panel
 
 Current Status:
 - Week: ${currentWeek}
-- Live Data: ${liveDataEnabled ? 'ON' : 'OFF'}
-- Auto-refresh: Every hour
-        `);
+- Online Mode: ${isOnlineMode ? 'ON' : 'OFF'}
+- Debug Mode: ${debugMode ? 'ON' : 'OFF'}
+- Backend: ${CONFIG.NETLIFY_FUNCTION_URL}
+            `);
+        }
+
+        // Auto-save functionality
+        let autoSaveInterval;
+        
+        function startAutoSave() {
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            
+            autoSaveInterval = setInterval(() => {
+                if (currentPlayer && Object.keys(picks).length > 0) {
+                    savePicks(false);
+                    debugLog('🔄 Auto-save completed');
+                }
+            }, 60000); // Auto-save every minute
+        }
+        
+        function stopAutoSave() {
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+                autoSaveInterval = null;
+            }
+        }
+        
+        // Start auto-save when player is selected
+        document.getElementById('playerSelect').addEventListener('change', function() {
+            if (this.value) {
+                startAutoSave();
+            } else {
+                stopAutoSave();
+            }
+        });
+
+        // Error handling and recovery
+        window.addEventListener('error', function(e) {
+            debugLog(`💥 JavaScript Error: ${e.message} at ${e.filename}:${e.lineno}`);
+            showNotification('An error occurred. Check the console for details.', 'error');
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            debugLog(`💥 Unhandled Promise Rejection: ${e.reason}`);
+            showNotification('A network error occurred. Your data is saved locally.', 'error');
+        });
+
+        // Prevent data loss on page unload
+        window.addEventListener('beforeunload', function(e) {
+            if (currentPlayer && Object.keys(picks).length > 0) {
+                // Try to save one last time
+                localStorage.setItem('nflPicks', JSON.stringify(picks));
+                localStorage.setItem('currentWeek', currentWeek.toString());
+            }
+        });
+
+        // Service worker registration for offline support (optional)
+        if ('serviceWorker' in navigator && !CONFIG.DEBUG) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        debugLog('✅ ServiceWorker registered');
+                    })
+                    .catch(function(error) {
+                        debugLog('❌ ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('unload', function() {
+            stopAutoSave();
+        });
     </script>
 </body>
 </html>
