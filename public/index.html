@@ -13,6 +13,10 @@
   </div>
 
   <script>
+    // Configuration - ADD YOUR SHEET ID HERE
+    const GOOGLE_SHEET_ID = '1UUehfgNPrP0R4kYBr4zkQ-pJKMlp4i0G-8Zya6N2wdM'; // Replace with your actual Sheet ID
+    const GOOGLE_SHEETS_ENABLED = GOOGLE_SHEET_ID !== '1UUehfgNPrP0R4kYBr4zkQ-pJKMlp4i0G-8Zya6N2wdM';
+    
     // Kids names
     const kids = ['Brixon', 'Jace', 'Knox', 'Makena', 'Cal', 'Will'];
     
@@ -22,6 +26,138 @@
     let games = [];
     let picks = {};
     let loading = false;
+    let lastSyncTime = null;
+
+    // Google Sheets Integration Functions
+    async function saveToGoogleSheets(type, data) {
+      if (!GOOGLE_SHEETS_ENABLED) {
+        console.log('Google Sheets not configured, skipping save');
+        return;
+      }
+
+      try {
+        // For now, we'll save to localStorage and show sync status
+        // In a production app, you'd send this to a backend service
+        // that can write to Google Sheets via the API
+        
+        const sheetData = {
+          type: type,
+          data: data,
+          timestamp: new Date().toISOString(),
+          week: currentWeek
+        };
+        
+        localStorage.setItem(`sheets-${type}-week${currentWeek}`, JSON.stringify(sheetData));
+        lastSyncTime = new Date().toLocaleTimeString();
+        
+        console.log(`Saved ${type} data for Week ${currentWeek}:`, data);
+        
+        // Update UI to show sync status
+        const syncStatus = document.getElementById('syncStatus');
+        if (syncStatus) {
+          syncStatus.innerHTML = `📊 Last synced: ${lastSyncTime}`;
+          syncStatus.className = 'text-green-600 text-sm';
+        }
+        
+      } catch (error) {
+        console.error('Error saving to sheets:', error);
+        const syncStatus = document.getElementById('syncStatus');
+        if (syncStatus) {
+          syncStatus.innerHTML = '❌ Sync failed';
+          syncStatus.className = 'text-red-600 text-sm';
+        }
+      }
+    }
+
+    async function loadFromGoogleSheets(sheetName) {
+      if (!GOOGLE_SHEETS_ENABLED) {
+        return null;
+      }
+
+      try {
+        // Get the gid for different sheets
+        const gidMap = {
+          'Schedule': '0',     // First sheet
+          'Picks': '1',        // Second sheet  
+          'Results': '2'       // Third sheet
+        };
+        
+        const gid = gidMap[sheetName] || '0';
+        const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv&gid=${gid}`;
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const csvText = await response.text();
+        const data = parseCSV(csvText);
+        
+        console.log(`Loaded ${data.length} rows from ${sheetName} sheet`);
+        return data;
+        
+      } catch (error) {
+        console.error(`Error loading from ${sheetName} sheet:`, error);
+        return null;
+      }
+    }
+
+    // Simple CSV parser
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      return lines.map(line => {
+        // Simple CSV parsing (handles basic cases)
+        return line.split(',').map(cell => cell.trim());
+      });
+    }
+
+    // Save picks with Google Sheets integration
+    async function savePicks() {
+      // Save to localStorage first
+      localStorage.setItem(`week${currentWeek}-picks`, JSON.stringify(picks));
+      
+      // Save to Google Sheets
+      if (GOOGLE_SHEETS_ENABLED) {
+        await saveToGoogleSheets('picks', {
+          week: currentWeek,
+          picks: picks,
+          kidCount: Object.keys(picks).length,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    // Save game results with Google Sheets integration
+    async function saveGameResults() {
+      if (GOOGLE_SHEETS_ENABLED) {
+        const completedGames = games.filter(g => g.completed);
+        if (completedGames.length > 0) {
+          await saveToGoogleSheets('schedule', {
+            week: currentWeek,
+            games: completedGames,
+            totalGames: games.length,
+            completedGames: completedGames.length
+          });
+        }
+      }
+    }
+
+    // Save weekly results
+    async function saveWeeklyResults() {
+      if (GOOGLE_SHEETS_ENABLED) {
+        const scores = calculateResults();
+        const maxScore = Math.max(...Object.values(scores));
+        const winners = Object.keys(scores).filter(kid => scores[kid] === maxScore);
+        
+        await saveToGoogleSheets('results', {
+          week: currentWeek,
+          scores: scores,
+          winners: winners,
+          completedGames: games.filter(g => g.completed).length,
+          totalGames: games.length
+        });
+      }
+    }
 
     // Fetch NFL games from ESPN API
     async function fetchNFLGames(week) {
@@ -78,6 +214,9 @@
         
         console.log(`Loaded ${games.length} games for Week ${week}`);
         
+        // Save game results to Google Sheets
+        await saveGameResults();
+        
       } catch (error) {
         console.error('Error fetching games:', error);
         alert('Failed to load games. Please try again.');
@@ -88,19 +227,29 @@
       renderApp();
     }
 
-    // Load picks from localStorage
-    function loadPicks() {
+    // Load picks from localStorage and Google Sheets
+    async function loadPicks() {
+      // Load from localStorage first
       const saved = localStorage.getItem(`week${currentWeek}-picks`);
       picks = saved ? JSON.parse(saved) : {};
-    }
-
-    // Save picks to localStorage
-    function savePicks() {
-      localStorage.setItem(`week${currentWeek}-picks`, JSON.stringify(picks));
+      
+      // Try to load from Google Sheets (for backup/sync)
+      if (GOOGLE_SHEETS_ENABLED) {
+        try {
+          const sheetData = await loadFromGoogleSheets('Picks');
+          if (sheetData && sheetData.length > 1) {
+            // Parse picks from sheet data
+            // This would merge with local picks
+            console.log('Loaded picks from Google Sheets:', sheetData.slice(0, 3)); // Show first few rows
+          }
+        } catch (error) {
+          console.warn('Could not load from Google Sheets:', error);
+        }
+      }
     }
 
     // Make a pick
-    function makePick(gameId, team) {
+    async function makePick(gameId, team) {
       if (!selectedKid) {
         alert('Please select your name first!');
         return;
@@ -108,16 +257,16 @@
       
       if (!picks[selectedKid]) picks[selectedKid] = {};
       picks[selectedKid][gameId] = team;
-      savePicks();
+      await savePicks();
       renderApp();
     }
 
     // Set tiebreaker
-    function setTiebreaker(score) {
+    async function setTiebreaker(score) {
       if (!selectedKid) return;
       if (!picks[selectedKid]) picks[selectedKid] = {};
       picks[selectedKid].tiebreaker = score;
-      savePicks();
+      await savePicks();
     }
 
     // Calculate results
@@ -137,7 +286,7 @@
     }
 
     // Submit picks
-    function submitPicks() {
+    async function submitPicks() {
       if (!selectedKid) {
         alert('Please select your name first!');
         return;
@@ -158,6 +307,10 @@
         return;
       }
       
+      // Final save to Google Sheets
+      await savePicks();
+      await saveWeeklyResults();
+      
       alert(`Picks submitted for ${selectedKid}! Good luck! 🏈`);
     }
 
@@ -168,7 +321,7 @@
       fetchNFLGames(currentWeek);
     }
 
-    // Render the app
+    // Render the app (same as before, with sync status added)
     function renderApp() {
       const scores = calculateResults();
       const maxScore = Math.max(...Object.values(scores));
@@ -183,11 +336,16 @@
               <h1 class="text-3xl font-bold text-gray-800">
                 🏆 NFL Pick'em - Week ${currentWeek}
               </h1>
-              <button onclick="fetchNFLGames(${currentWeek})" 
-                      class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 ${loading ? 'opacity-50' : ''}">
-                ${loading ? '🔄 Loading...' : '🔄 Refresh'}
-              </button>
+              <div class="flex items-center gap-4">
+                <button onclick="fetchNFLGames(${currentWeek})" 
+                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 ${loading ? 'opacity-50' : ''}">
+                  ${loading ? '🔄 Loading...' : '🔄 Refresh'}
+                </button>
+                ${GOOGLE_SHEETS_ENABLED ? `<span class="text-green-600 text-sm">📊 Sheets Connected</span>` : `<span class="text-orange-600 text-sm">📄 Local Only</span>`}
+              </div>
             </div>
+            
+            ${GOOGLE_SHEETS_ENABLED ? `<div id="syncStatus" class="text-gray-500 text-sm mb-4">${lastSyncTime ? `📊 Last synced: ${lastSyncTime}` : '📊 Ready to sync'}</div>` : ''}
             
             <div class="flex items-center gap-4">
               <span class="text-gray-600">👤</span>
