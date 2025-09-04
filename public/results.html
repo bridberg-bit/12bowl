@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>NFL Pick'em – Results</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width: 800px; margin: 24px auto; padding: 0 16px; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 12px 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    select { padding: 8px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; }
+    .win { background:#f6fff6; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Results</h1>
+    <nav><a href="./index.html">Make Picks</a></nav>
+  </header>
+
+  <div class="card">
+    <label>Week
+      <select id="week"></select>
+    </label>
+  </div>
+
+  <div id="out"></div>
+
+<script>
+const APPS_SCRIPT_URL = ""; // paste same URL
+const API_KEY = "";         // same key
+
+const weekSel = document.getElementById('week');
+const out = document.getElementById('out');
+for(let i=1;i<=18;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent="Week "+i; weekSel.appendChild(o); }
+
+async function load(){
+  const wk = weekSel.value || 1;
+  const url = `${APPS_SCRIPT_URL}?route=results&week=${wk}&api_key=${API_KEY}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  render(data);
+}
+function render(data){
+  const winners = (data.winners||[]).map(w=>w.name).join(', ') || '—';
+  const cbk = data.correctByKid || {};
+  const rows = Object.entries(cbk).map(([kidId, obj])=>{
+    const isWin = (data.winners||[]).some(w=>w.kidId===kidId);
+    return `<tr class="${isWin?'win':''}"><td>${obj.name}</td><td>${obj.correct}</td><td>${obj.tiebreak??'—'}</td></tr>`;
+  }).join('');
+  out.innerHTML = `
+    <div class="card">
+      <p><strong>Finals:</strong> ${data.finals}/${data.totalGames}</p>
+      <p><strong>Winner(s):</strong> ${winners}</p>
+      <p><strong>Pot:</strong> $${data.pot}</p>
+      <p><strong>Tiebreaker:</strong> game ${data.tiebreaker?.eventId || '—'}, total points: ${data.tiebreaker?.actualTotal ?? '—'}</p>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Kid</th><th>Correct</th><th>Tiebreaker</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+// init
+load();
+weekSel.addEventListener('change', load);
+</script>
+</body>
+</html>
