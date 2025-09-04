@@ -1,152 +1,79 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>NFL Pick'em – Picks</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL Pick'em - Family Edition</title>
+  <meta name="description" content="Family-friendly NFL pick'em game for kids" />
+  
+  <!-- Favicon (you can add a football emoji or icon later) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>" />
+  
+  <!-- Theme color for mobile browsers -->
+  <meta name="theme-color" content="#10b981" />
+  
+  <!-- Tailwind CSS (CDN for quick setup) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Basic mobile-friendly styles -->
   <style>
-    body { font-family: system-ui, Arial; max-width: 800px; margin: 24px auto; padding: 0 16px; }
-    .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 12px 0; }
-    .row { display: flex; justify-content: space-between; align-items: center; }
-    .muted { color: #666; font-size: 12px; }
-    .btn { padding: 10px 14px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; cursor: pointer; }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    label { display: inline-flex; gap: 6px; align-items: center; }
-    input[type="number"] { width: 100%; padding: 8px; }
-    select, input[type="text"] { padding: 8px; width: 100%; }
-    header { display:flex; gap:8px; align-items:center; justify-content:space-between; }
-    .ok { color: #0a7; }
-    .warn { color:#b70; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>NFL Pick'em</h1>
-    <nav><a href="./results.html">Results</a></nav>
-  </header>
+  <!-- This is where your React app will mount -->
+  <div id="root"></div>
+  
+  <!-- React and ReactDOM from CDN for quick setup -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Lucide React icons -->
+  <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+  
+  <!-- Your app script (we'll add this content next) -->
+  <script type="module">
+    // We'll put your React app code here for now
+    // Later we'll move it to separate files
+    
+    const { useState, useEffect } = React;
+    const { Trophy, Calendar, User, Target, RefreshCw, Wifi, WifiOff } = lucideReact;
 
-  <div class="card">
-    <div class="grid">
-      <div>
-        <label>Week
-          <select id="week"></select>
-        </label>
-      </div>
-      <div>
-        <label>Kid
-          <select id="kid"></select>
-        </label>
-      </div>
-      <div>
-        <label>Passcode
-          <input id="passcode" type="text" placeholder="Your code"/>
-        </label>
-      </div>
-      <div>
-        <label>Tiebreaker (total points in last game)
-          <input id="tiebreaker" type="number" min="0" step="1"/>
-        </label>
-      </div>
-    </div>
-  </div>
+    // Your NFL Pick'em App Component will go here
+    function NFLPickemApp() {
+      return React.createElement('div', { 
+        className: 'min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4' 
+      }, 
+        React.createElement('div', { className: 'max-w-4xl mx-auto' },
+          React.createElement('div', { 
+            className: 'bg-white rounded-lg shadow-lg p-6 mb-6 text-center' 
+          },
+            React.createElement('h1', { 
+              className: 'text-3xl font-bold text-gray-800 flex items-center justify-center gap-2' 
+            },
+              React.createElement(Trophy, { className: 'text-yellow-500' }),
+              'NFL Pick\'em - Coming Soon!'
+            ),
+            React.createElement('p', { className: 'text-gray-600 mt-4' },
+              'Setting up your family pick\'em app...'
+            ),
+            React.createElement('div', { className: 'mt-6' },
+              React.createElement('div', { 
+                className: 'inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-lg' 
+              },
+                React.createElement(Wifi, { className: 'w-4 h-4' }),
+                'System Ready'
+              )
+            )
+          )
+        )
+      );
+    }
 
-  <div id="games"></div>
-
-  <div class="card">
-    <button class="btn" id="submitBtn">Submit picks</button>
-    <span id="msg"></span>
-  </div>
-
-<script>
-const API_BASE = ""; // leave empty; we’ll use the full Apps Script URL
-const APPS_SCRIPT_URL = ""; // paste your Web App URL here
-const API_KEY = ""; // set via Netlify env later if you prefer
-
-// Persist kid + passcode locally
-const LS = {
-  get(k){ try{return JSON.parse(localStorage.getItem(k))}catch(e){return null} },
-  set(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
-};
-
-const weekSel = document.getElementById('week');
-const kidSel = document.getElementById('kid');
-const passInp = document.getElementById('passcode');
-const tbInp = document.getElementById('tiebreaker');
-const gamesDiv = document.getElementById('games');
-const submitBtn = document.getElementById('submitBtn');
-const msg = document.getElementById('msg');
-
-// Kid list (v1: define here to match your Settings)
-// Keep in sync with the Settings.Kids map (ids only; names shown here)
-const KIDS = [
-  ["brx","Brixon"],["gry","Greyson"],["brd","Brady"],["kdn","Kaden"],["lya","Layla"],["ant","Anthony"]
-];
-KIDS.forEach(([id,name])=>{
-  const o=document.createElement('option'); o.value=id; o.textContent=name; kidSel.appendChild(o);
-});
-const savedKid = LS.get('kidId'); if(savedKid) kidSel.value=savedKid;
-const savedPass = LS.get('pass'); if(savedPass) passInp.value=savedPass;
-const savedTB = LS.get('tb'); if(savedTB!=null) tbInp.value=savedTB;
-
-for(let i=1;i<=18;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent="Week "+i; weekSel.appendChild(o); }
-let publishedWeek = 1;
-async function loadWeek(){
-  const wk = weekSel.value || publishedWeek;
-  const url = `${APPS_SCRIPT_URL}?route=schedule&week=${wk}&api_key=${API_KEY}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  publishedWeek = data.publishedWeek || 1;
-  if(!weekSel.value) weekSel.value = String(publishedWeek);
-  renderGames(data.items, data.tiebreakerEventId);
-}
-function renderGames(items, tbEventId){
-  gamesDiv.innerHTML = '';
-  items.forEach(g=>{
-    const card = document.createElement('div'); card.className='card';
-    const kickoff = new Date(g.kickoff);
-    const locked = Date.now() >= kickoff.getTime();
-    const status = locked ? '<span class="warn">Locked</span>' : '<span class="ok">Open</span>';
-    card.innerHTML = `
-      <div class="row"><strong>Game ${g.gameNo}: ${g.away} @ ${g.home}</strong>
-        <span class="muted">${kickoff.toLocaleString()}</span>
-      </div>
-      <div class="grid">
-        <label><input type="radio" name="game-${g.eventId}" value="HOME" ${locked?'disabled':''}> ${g.home}</label>
-        <label><input type="radio" name="game-${g.eventId}" value="AWAY" ${locked?'disabled':''}> ${g.away}</label>
-      </div>
-      <div class="muted">Status: ${g.status} ${status}</div>
-      ${String(g.eventId)===String(tbEventId) ? '<div class="muted">This is the tiebreaker game.</div>' : ''}
-    `;
-    gamesDiv.appendChild(card);
-  });
-}
-
-submitBtn.addEventListener('click', async ()=>{
-  submitBtn.disabled = true; msg.textContent='Submitting...';
-  const wk = Number(weekSel.value);
-  const kidId = kidSel.value;
-  const pass = passInp.value.trim();
-  const tiebreaker = Number(tbInp.value || 0);
-  LS.set('kidId', kidId); LS.set('pass', pass); LS.set('tb', tiebreaker);
-
-  const radios = gamesDiv.querySelectorAll('input[type="radio"]:checked');
-  const picks = Array.from(radios).map(r=>{
-    const eventId = Number(r.name.replace('game-',''));
-    return {eventId, pick:r.value};
-  });
-  const body = {
-    route:'pick', api_key: API_KEY, kidId, passcode: pass, week: wk, picks, tiebreaker
-  };
-  const res = await fetch(APPS_SCRIPT_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-  const data = await res.json();
-  msg.textContent = data.ok ? `Saved ${data.saved} picks.` : (data.error||'Error');
-  submitBtn.disabled = false;
-});
-
-// init
-loadWeek();
-weekSel.addEventListener('change', loadWeek);
-</script>
+    // Render the app
+    ReactDOM.render(React.createElement(NFLPickemApp), document.getElementById('root'));
+  </script>
 </body>
 </html>
