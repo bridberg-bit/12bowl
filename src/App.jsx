@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Calendar, User, Target, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Trophy, Calendar, User, Target, RefreshCw, Wifi, WifiOff, Download } from 'lucide-react';
 
 const kids = ['Brixon', 'Jace', 'Knox', 'Makena', 'Cal', 'Will'];
 
@@ -11,6 +11,21 @@ const NFLPickemApp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [sheetsConnected, setSheetsConnected] = useState(false);
+
+  // Check if Google Sheets is available
+  useEffect(() => {
+    const checkSheetsConnection = () => {
+      const hasSheetId = window.GOOGLE_SHEET_ID && window.GOOGLE_SHEET_ID !== 'YOUR_SHEET_ID_HERE';
+      const hasFunctions = window.saveToGoogleSheets && window.loadFromGoogleSheets;
+      setSheetsConnected(hasSheetId && hasFunctions);
+    };
+    
+    checkSheetsConnection();
+    
+    // Check again after a short delay in case scripts are still loading
+    setTimeout(checkSheetsConnection, 1000);
+  }, []);
 
   // Fetch NFL games from ESPN API
   const fetchNFLGames = async (week) => {
@@ -80,8 +95,12 @@ const NFLPickemApp = () => {
       setLastUpdated(new Date().toLocaleTimeString());
       
       // Save to Google Sheets if available
-      if (window.saveToGoogleSheets) {
-        await window.saveToGoogleSheets('schedule', { week, games: formattedGames });
+      if (sheetsConnected && window.saveToGoogleSheets) {
+        try {
+          await window.saveToGoogleSheets('schedule', { week, games: formattedGames });
+        } catch (err) {
+          console.warn('Could not save to Google Sheets:', err);
+        }
       }
       
     } catch (err) {
@@ -103,7 +122,7 @@ const NFLPickemApp = () => {
       }
       
       // Load from Google Sheets if available
-      if (window.loadFromGoogleSheets) {
+      if (sheetsConnected && window.loadFromGoogleSheets) {
         try {
           const sheetPicks = await window.loadFromGoogleSheets('picks', week);
           // Merge with local picks (Google Sheets takes precedence)
@@ -126,11 +145,15 @@ const NFLPickemApp = () => {
       localStorage.setItem(`week${currentWeek}-picks`, JSON.stringify(newPicks));
       
       // Save to Google Sheets if available
-      if (window.saveToGoogleSheets) {
-        await window.saveToGoogleSheets('picks', {
-          week: currentWeek,
-          picks: newPicks
-        });
+      if (sheetsConnected && window.saveToGoogleSheets) {
+        try {
+          await window.saveToGoogleSheets('picks', {
+            week: currentWeek,
+            picks: newPicks
+          });
+        } catch (err) {
+          console.warn('Could not save to Google Sheets:', err);
+        }
       }
       
       setPicks(newPicks);
@@ -170,6 +193,40 @@ const NFLPickemApp = () => {
     return { scores, details };
   };
 
+  // Export data for manual Google Sheets entry
+  const exportData = () => {
+    const { scores } = calculateResults();
+    const exportData = {
+      week: currentWeek,
+      timestamp: new Date().toLocaleString(),
+      picks: picks,
+      games: games.map(g => ({
+        id: g.id,
+        away: g.away,
+        home: g.home,
+        completed: g.completed,
+        winner: g.winner,
+        awayScore: g.awayScore,
+        homeScore: g.homeScore
+      })),
+      standings: scores
+    };
+    
+    // Create downloadable JSON file
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `nfl-pickem-week-${currentWeek}.json`;
+    link.click();
+    
+    // Also show in console for copying
+    console.log('=== WEEK ' + currentWeek + ' DATA FOR GOOGLE SHEETS ===');
+    console.log(dataStr);
+    console.log('=== END DATA ===');
+  };
+
   // Auto-refresh every 5 minutes during game days
   useEffect(() => {
     const interval = setInterval(() => {
@@ -182,13 +239,13 @@ const NFLPickemApp = () => {
     }, 5 * 60 * 1000); // 5 minutes
 
     return () => clearInterval(interval);
-  }, [currentWeek]);
+  }, [currentWeek, sheetsConnected]);
 
   // Load data when week changes
   useEffect(() => {
     fetchNFLGames(currentWeek);
     loadPicks(currentWeek);
-  }, [currentWeek]);
+  }, [currentWeek, sheetsConnected]);
 
   const handlePickChange = async (gameId, team) => {
     if (!selectedKid) return;
@@ -275,17 +332,31 @@ const NFLPickemApp = () => {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 {loading ? 'Loading...' : 'Refresh'}
               </button>
-              {error ? (
-                <WifiOff className="text-red-500 w-5 h-5" />
+              
+              <button
+                onClick={exportData}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+              
+              {sheetsConnected ? (
+                <Wifi className="text-green-500 w-5 h-5" title="Google Sheets Connected" />
               ) : (
-                <Wifi className="text-green-500 w-5 h-5" />
+                <WifiOff className="text-orange-500 w-5 h-5" title="Local Storage Only" />
               )}
             </div>
           </div>
           
           {lastUpdated && (
-            <div className="text-sm text-gray-500 mb-4">
-              Last updated: {lastUpdated}
+            <div className="text-sm text-gray-500 mb-4 flex items-center gap-4">
+              <span>Last updated: {lastUpdated}</span>
+              {sheetsConnected ? (
+                <span className="text-green-600">📊 Google Sheets Connected</span>
+              ) : (
+                <span className="text-orange-600">📱 Local Storage Only</span>
+              )}
             </div>
           )}
           
