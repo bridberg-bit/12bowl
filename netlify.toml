@@ -1,7 +1,8 @@
 [build]
-  publish = "public"
+  command = "npm run build"
+  publish = "dist"
 
 [[redirects]]
-  from = "/api/*"
-  to = ":splat"
+  from = "/*"
+  to = "/index.html"
   status = 200
